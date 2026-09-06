@@ -66,15 +66,42 @@
       <!-- Panel: 題庫管理 -->
       <div data-panel="questions" class="hidden bg-white rounded-xl shadow-sm border p-6">
         <h3 class="font-semibold text-lg mb-4">動態題庫管理</h3>
-        <div class="flex gap-2 mb-4">
-          <input id="newQuestionText" placeholder="輸入新題目..." class="flex-1 border border-gray-300 rounded-lg p-2 text-sm">
-          <input id="newQuestionOrder" type="number" placeholder="順序" class="w-24 border border-gray-300 rounded-lg p-2 text-sm">
+        <div class="border border-gray-200 rounded-lg p-4 mb-4 space-y-3">
+          <div class="flex gap-2">
+            <input id="newQuestionText" placeholder="輸入新題目..." class="flex-1 border border-gray-300 rounded-lg p-2 text-sm">
+            <select id="newQuestionType" class="border border-gray-300 rounded-lg p-2 text-sm">
+              <option value="TEXT">文字</option>
+              <option value="SINGLE_CHOICE">單選</option>
+              <option value="MULTIPLE_CHOICE">多選</option>
+              <option value="YES_NO">是非題</option>
+              <option value="RATING">評星</option>
+              <option value="SLIDER">滑桿</option>
+            </select>
+            <input id="newQuestionOrder" type="number" placeholder="順序" class="w-20 border border-gray-300 rounded-lg p-2 text-sm">
+          </div>
+
+          <div id="choiceOptionsField" class="hidden">
+            <label class="block text-xs text-gray-500 mb-1">選項（每行一個）</label>
+            <textarea id="newQuestionOptions" rows="3" class="w-full border border-gray-300 rounded-lg p-2 text-sm" placeholder="選項一&#10;選項二&#10;選項三"></textarea>
+          </div>
+
+          <div id="ratingConfigField" class="hidden flex items-center gap-2">
+            <label class="text-xs text-gray-500">星星上限</label>
+            <input id="newQuestionRatingMax" type="number" value="5" min="2" max="10" class="w-20 border border-gray-300 rounded-lg p-2 text-sm">
+          </div>
+
+          <div id="sliderConfigField" class="hidden flex items-center gap-3">
+            <label class="text-xs text-gray-500">最小值 <input id="newQuestionSliderMin" type="number" value="0" class="w-16 border border-gray-300 rounded-lg p-1 text-sm ml-1"></label>
+            <label class="text-xs text-gray-500">最大值 <input id="newQuestionSliderMax" type="number" value="10" class="w-16 border border-gray-300 rounded-lg p-1 text-sm ml-1"></label>
+            <label class="text-xs text-gray-500">間距 <input id="newQuestionSliderStep" type="number" value="1" class="w-16 border border-gray-300 rounded-lg p-1 text-sm ml-1"></label>
+          </div>
+
           <button id="addQuestionBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700">新增</button>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm text-left">
             <thead class="text-gray-500 border-b">
-              <tr><th class="p-2">順序</th><th class="p-2">題目</th><th class="p-2">狀態</th><th class="p-2">操作</th></tr>
+              <tr><th class="p-2">順序</th><th class="p-2">題目</th><th class="p-2">題型</th><th class="p-2">狀態</th><th class="p-2">操作</th></tr>
             </thead>
             <tbody id="questionsTbody"></tbody>
           </table>

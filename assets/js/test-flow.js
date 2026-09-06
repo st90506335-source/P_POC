@@ -72,6 +72,52 @@ async function loadManualUrl() {
   }
 }
 
+function renderQuestionInput(qst) {
+  const type = qst.type || "TEXT";
+
+  if (type === "SINGLE_CHOICE" || type === "YES_NO") {
+    const options = type === "YES_NO" ? ["是", "否"] : (qst.options || []);
+    return options.map((opt) => `
+      <label class="flex items-center gap-2 mb-2 cursor-pointer">
+        <input type="radio" name="q_${qst.id}" value="${opt}" class="w-4 h-4">
+        <span>${opt}</span>
+      </label>
+    `).join("");
+  }
+
+  if (type === "MULTIPLE_CHOICE") {
+    return (qst.options || []).map((opt) => `
+      <label class="flex items-center gap-2 mb-2 cursor-pointer">
+        <input type="checkbox" value="${opt}" class="w-4 h-4">
+        <span>${opt}</span>
+      </label>
+    `).join("");
+  }
+
+  if (type === "RATING") {
+    const max = qst.ratingMax || 5;
+    let stars = "";
+    for (let i = 1; i <= max; i++) {
+      stars += `<button type="button" class="star-btn text-3xl text-gray-300 leading-none" data-value="${i}">★</button>`;
+    }
+    return `<div class="rating-stars flex gap-1" data-value="0">${stars}</div>`;
+  }
+
+  if (type === "SLIDER") {
+    const min = qst.sliderMin ?? 0;
+    const max = qst.sliderMax ?? 10;
+    const step = qst.sliderStep ?? 1;
+    return `
+      <input type="range" min="${min}" max="${max}" step="${step}" value="${min}" class="slider-input w-full">
+      <div class="text-sm text-gray-500 mt-1">目前數值：<span class="slider-value font-medium text-gray-700">${min}</span></div>
+    `;
+  }
+
+  return `<textarea rows="4"
+    class="text-input w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+    placeholder="請輸入您的回饋..."></textarea>`;
+}
+
 async function loadQuestions() {
   const q = query(
     collection(db, "questions"),
@@ -83,33 +129,85 @@ async function loadQuestions() {
 
   els.questionsContainer.innerHTML = "";
   questionsCache.forEach((qst, idx) => {
+    const type = qst.type || "TEXT";
     const wrap = document.createElement("div");
     wrap.className = "mb-6";
+    wrap.dataset.qid = qst.id;
+    wrap.dataset.qtype = type;
     wrap.innerHTML = `
       <label class="block font-medium text-gray-800 mb-2">${idx + 1}. ${qst.questionText}</label>
-      <textarea data-qid="${qst.id}" rows="4"
-        class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-        placeholder="請輸入您的回饋..."></textarea>
+      ${renderQuestionInput(qst)}
     `;
     els.questionsContainer.appendChild(wrap);
+  });
+
+  els.questionsContainer.querySelectorAll('[data-qtype="RATING"] .rating-stars').forEach((starsEl) => {
+    starsEl.querySelectorAll(".star-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const value = Number(btn.dataset.value);
+        starsEl.dataset.value = value;
+        starsEl.querySelectorAll(".star-btn").forEach((b) => {
+          const filled = Number(b.dataset.value) <= value;
+          b.classList.toggle("text-yellow-400", filled);
+          b.classList.toggle("text-gray-300", !filled);
+        });
+      });
+    });
+  });
+
+  els.questionsContainer.querySelectorAll('[data-qtype="SLIDER"] .slider-input').forEach((input) => {
+    const display = input.parentElement.querySelector(".slider-value");
+    input.addEventListener("input", () => { display.textContent = input.value; });
   });
 }
 
 function collectAnswers() {
-  const textareas = els.questionsContainer.querySelectorAll("textarea[data-qid]");
+  const wraps = els.questionsContainer.querySelectorAll("[data-qid]");
   const answers = [];
   let allFilled = true;
-  textareas.forEach((ta) => {
-    const qid = ta.dataset.qid;
+
+  wraps.forEach((wrap) => {
+    const qid = wrap.dataset.qid;
+    const type = wrap.dataset.qtype;
     const qst = questionsCache.find((q) => q.id === qid);
-    const answerText = ta.value.trim();
-    if (!answerText) allFilled = false;
+    let answerValue = null;
+    let answerText = "";
+
+    if (type === "SINGLE_CHOICE" || type === "YES_NO") {
+      const checked = wrap.querySelector('input[type="radio"]:checked');
+      answerValue = checked ? checked.value : null;
+      answerText = answerValue || "";
+      if (!answerValue) allFilled = false;
+    } else if (type === "MULTIPLE_CHOICE") {
+      const checked = Array.from(wrap.querySelectorAll('input[type="checkbox"]:checked')).map((c) => c.value);
+      answerValue = checked;
+      answerText = checked.join("、");
+      if (checked.length === 0) allFilled = false;
+    } else if (type === "RATING") {
+      const rating = Number(wrap.querySelector(".rating-stars")?.dataset.value || 0);
+      answerValue = rating;
+      answerText = rating > 0 ? `${rating} / ${qst?.ratingMax || 5} 顆星` : "";
+      if (rating <= 0) allFilled = false;
+    } else if (type === "SLIDER") {
+      const value = Number(wrap.querySelector(".slider-input").value);
+      answerValue = value;
+      answerText = String(value);
+    } else {
+      const value = wrap.querySelector("textarea").value.trim();
+      answerValue = value;
+      answerText = value;
+      if (!value) allFilled = false;
+    }
+
     answers.push({
       questionId: qid,
       questionText: qst ? qst.questionText : "",
+      questionType: type,
+      answerValue,
       answerText
     });
   });
+
   return { answers, allFilled };
 }
 

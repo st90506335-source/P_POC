@@ -57,7 +57,16 @@ const els = {
   // 題庫管理
   questionsTbody: $("questionsTbody"),
   newQuestionText: $("newQuestionText"),
+  newQuestionType: $("newQuestionType"),
   newQuestionOrder: $("newQuestionOrder"),
+  newQuestionOptions: $("newQuestionOptions"),
+  newQuestionRatingMax: $("newQuestionRatingMax"),
+  newQuestionSliderMin: $("newQuestionSliderMin"),
+  newQuestionSliderMax: $("newQuestionSliderMax"),
+  newQuestionSliderStep: $("newQuestionSliderStep"),
+  choiceOptionsField: $("choiceOptionsField"),
+  ratingConfigField: $("ratingConfigField"),
+  sliderConfigField: $("sliderConfigField"),
   addQuestionBtn: $("addQuestionBtn"),
 
   // 回饋審核
@@ -145,17 +154,40 @@ els.sendInvitesBtn?.addEventListener("click", async () => {
 });
 
 // ---------- 2. 題庫管理 ----------
+const QUESTION_TYPE_LABEL = {
+  TEXT: "文字",
+  SINGLE_CHOICE: "單選",
+  MULTIPLE_CHOICE: "多選",
+  YES_NO: "是非題",
+  RATING: "評星",
+  SLIDER: "滑桿"
+};
+
+function updateQuestionConfigFields() {
+  const type = els.newQuestionType.value;
+  hide(els.choiceOptionsField);
+  hide(els.ratingConfigField);
+  hide(els.sliderConfigField);
+  if (type === "SINGLE_CHOICE" || type === "MULTIPLE_CHOICE") show(els.choiceOptionsField);
+  if (type === "RATING") show(els.ratingConfigField);
+  if (type === "SLIDER") show(els.sliderConfigField);
+}
+els.newQuestionType?.addEventListener("change", updateQuestionConfigFields);
+updateQuestionConfigFields();
+
 function watchQuestions() {
   const q = query(collection(db, "questions"), orderBy("sortOrder", "asc"));
   onSnapshot(q, (snap) => {
     els.questionsTbody.innerHTML = "";
     snap.forEach((d) => {
       const qst = d.data();
+      const type = qst.type || "TEXT";
       const tr = document.createElement("tr");
       tr.className = "border-b";
       tr.innerHTML = `
         <td class="p-2">${qst.sortOrder ?? 0}</td>
         <td class="p-2">${qst.questionText}</td>
+        <td class="p-2 text-gray-500">${QUESTION_TYPE_LABEL[type] || type}</td>
         <td class="p-2">
           <button data-id="${d.id}" data-active="${qst.isActive}" class="toggle-active px-2 py-1 rounded text-xs ${qst.isActive ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-600"}">
             ${qst.isActive ? "啟用中" : "已停用"}
@@ -186,8 +218,32 @@ function watchQuestions() {
 
 els.addQuestionBtn?.addEventListener("click", async () => {
   const text = els.newQuestionText.value.trim();
+  const type = els.newQuestionType.value;
   const order = Number(els.newQuestionOrder.value) || 0;
   if (!text) return;
+
+  const questionDoc = {
+    questionText: text,
+    type,
+    sortOrder: order,
+    isActive: true,
+    createdAt: serverTimestamp()
+  };
+
+  if (type === "SINGLE_CHOICE" || type === "MULTIPLE_CHOICE") {
+    const options = els.newQuestionOptions.value.split("\n").map((s) => s.trim()).filter(Boolean);
+    if (options.length < 2) {
+      alert("選項至少需要 2 個");
+      return;
+    }
+    questionDoc.options = options;
+  } else if (type === "RATING") {
+    questionDoc.ratingMax = Number(els.newQuestionRatingMax.value) || 5;
+  } else if (type === "SLIDER") {
+    questionDoc.sliderMin = Number(els.newQuestionSliderMin.value) || 0;
+    questionDoc.sliderMax = Number(els.newQuestionSliderMax.value) || 10;
+    questionDoc.sliderStep = Number(els.newQuestionSliderStep.value) || 1;
+  }
 
   // 插入指定順序時，將原本該順序（含）之後的題目依序往後遞補，
   // 避免多題共用同一個 sortOrder 導致排序不明確
@@ -201,14 +257,10 @@ els.addQuestionBtn?.addEventListener("click", async () => {
     await batch.commit();
   }
 
-  await addDoc(collection(db, "questions"), {
-    questionText: text,
-    sortOrder: order,
-    isActive: true,
-    createdAt: serverTimestamp()
-  });
+  await addDoc(collection(db, "questions"), questionDoc);
   els.newQuestionText.value = "";
   els.newQuestionOrder.value = "";
+  els.newQuestionOptions.value = "";
 });
 
 // ---------- 3. 回饋審核與發券 ----------
