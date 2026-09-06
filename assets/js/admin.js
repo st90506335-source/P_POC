@@ -1,0 +1,360 @@
+// admin.js — admin.html（後台管理控制台，限 Admin Google 帳號存取）
+// 對應規格書 3.2 / 5 節：審核介面、題庫 CRUD、庫存管理、批次邀請、核准發券
+
+import { db, functions } from "./firebase-config.js";
+import { onAuthReady, isAdmin, signIn, signOutUser } from "./auth-guard.js";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  addDoc,
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
+
+const $ = (id) => document.getElementById(id);
+function show(el) { el && el.classList.remove("hidden"); }
+function hide(el) { el && el.classList.add("hidden"); }
+
+const els = {
+  loading: $("loading"),
+  loginSection: $("loginSection"),
+  loginBtn: $("loginBtn"),
+  deniedSection: $("deniedSection"),
+  console: $("console"),
+  userName: $("userName"),
+  logoutBtn: $("logoutBtn"),
+
+  tabs: document.querySelectorAll("[data-tab]"),
+  panels: document.querySelectorAll("[data-panel]"),
+
+  // 意願登記審核
+  applicantsTbody: $("applicantsTbody"),
+  sendInvitesBtn: $("sendInvitesBtn"),
+  invitesMessage: $("invitesMessage"),
+
+  // 題庫管理
+  questionsTbody: $("questionsTbody"),
+  newQuestionText: $("newQuestionText"),
+  newQuestionOrder: $("newQuestionOrder"),
+  addQuestionBtn: $("addQuestionBtn"),
+
+  // 回饋審核
+  submissionsContainer: $("submissionsContainer"),
+
+  // 獎勵序號池
+  rewardStockSummary: $("rewardStockSummary"),
+  refreshStockBtn: $("refreshStockBtn"),
+  newSerialsText: $("newSerialsText"),
+  addSerialsBtn: $("addSerialsBtn"),
+  rewardsMessage: $("rewardsMessage"),
+
+  // 系統設定
+  settingsForm: $("settingsForm"),
+  appNameInput: $("appNameInput"),
+  manualUrlInput: $("manualUrlInput"),
+  featureIntroInput: $("featureIntroInput"),
+  targetSampleSizeInput: $("targetSampleSizeInput"),
+  settingsMessage: $("settingsMessage")
+};
+
+// ---------- Tabs ----------
+els.tabs.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const target = btn.dataset.tab;
+    els.tabs.forEach((b) => b.classList.toggle("bg-indigo-600", b === btn));
+    els.tabs.forEach((b) => b.classList.toggle("text-white", b === btn));
+    els.tabs.forEach((b) => b.classList.toggle("bg-gray-100", b !== btn));
+    els.panels.forEach((p) => {
+      if (p.dataset.panel === target) show(p); else hide(p);
+    });
+  });
+});
+
+// ---------- 1. 意願登記審核 & 批次邀請 ----------
+const STATUS_LABEL = { APPLIED: "已登記", INVITED: "已邀請", REJECTED: "已婉拒" };
+
+function watchApplicants() {
+  const q = query(collection(db, "applicants"), orderBy("createdAt", "desc"));
+  onSnapshot(q, (snap) => {
+    els.applicantsTbody.innerHTML = "";
+    snap.forEach((d) => {
+      const a = d.data();
+      const tr = document.createElement("tr");
+      tr.className = "border-b";
+      tr.innerHTML = `
+        <td class="p-2">
+          ${a.status === "APPLIED" ? `<input type="checkbox" class="applicant-check" value="${d.id}">` : ""}
+        </td>
+        <td class="p-2">${a.userName || ""}</td>
+        <td class="p-2">${a.email || ""}</td>
+        <td class="p-2">${a.phone || ""}</td>
+        <td class="p-2"><span class="status-badge status-${a.status}">${STATUS_LABEL[a.status] || a.status}</span></td>
+      `;
+      els.applicantsTbody.appendChild(tr);
+    });
+  });
+}
+
+els.sendInvitesBtn?.addEventListener("click", async () => {
+  const checks = document.querySelectorAll(".applicant-check:checked");
+  const targetUids = Array.from(checks).map((c) => c.value);
+  if (targetUids.length === 0) {
+    els.invitesMessage.textContent = "請至少勾選一位受測者";
+    els.invitesMessage.className = "text-sm text-red-600 mt-2";
+    return;
+  }
+
+  els.sendInvitesBtn.disabled = true;
+  els.invitesMessage.textContent = "處理中...";
+  els.invitesMessage.className = "text-sm text-gray-500 mt-2";
+
+  try {
+    const sendInvites = httpsCallable(functions, "sendInvites");
+    const result = await sendInvites({ targetUids });
+    els.invitesMessage.textContent = `成功發送 ${result.data.count} 封測試邀請`;
+    els.invitesMessage.className = "text-sm text-green-600 mt-2";
+  } catch (err) {
+    console.error(err);
+    els.invitesMessage.textContent = err.message || "發送邀請失敗";
+    els.invitesMessage.className = "text-sm text-red-600 mt-2";
+  } finally {
+    els.sendInvitesBtn.disabled = false;
+  }
+});
+
+// ---------- 2. 題庫管理 ----------
+function watchQuestions() {
+  const q = query(collection(db, "questions"), orderBy("sortOrder", "asc"));
+  onSnapshot(q, (snap) => {
+    els.questionsTbody.innerHTML = "";
+    snap.forEach((d) => {
+      const qst = d.data();
+      const tr = document.createElement("tr");
+      tr.className = "border-b";
+      tr.innerHTML = `
+        <td class="p-2">${qst.sortOrder ?? 0}</td>
+        <td class="p-2">${qst.questionText}</td>
+        <td class="p-2">
+          <button data-id="${d.id}" data-active="${qst.isActive}" class="toggle-active px-2 py-1 rounded text-xs ${qst.isActive ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-600"}">
+            ${qst.isActive ? "啟用中" : "已停用"}
+          </button>
+        </td>
+        <td class="p-2">
+          <button data-id="${d.id}" class="delete-question text-red-600 text-sm hover:underline">刪除</button>
+        </td>
+      `;
+      els.questionsTbody.appendChild(tr);
+    });
+
+    els.questionsTbody.querySelectorAll(".toggle-active").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const isActive = btn.dataset.active === "true";
+        await updateDoc(doc(db, "questions", btn.dataset.id), { isActive: !isActive });
+      });
+    });
+    els.questionsTbody.querySelectorAll(".delete-question").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        if (confirm("確定要刪除此題目嗎？")) {
+          await deleteDoc(doc(db, "questions", btn.dataset.id));
+        }
+      });
+    });
+  });
+}
+
+els.addQuestionBtn?.addEventListener("click", async () => {
+  const text = els.newQuestionText.value.trim();
+  const order = Number(els.newQuestionOrder.value) || 0;
+  if (!text) return;
+
+  await addDoc(collection(db, "questions"), {
+    questionText: text,
+    sortOrder: order,
+    isActive: true,
+    createdAt: serverTimestamp()
+  });
+  els.newQuestionText.value = "";
+  els.newQuestionOrder.value = "";
+});
+
+// ---------- 3. 回饋審核與發券 ----------
+const REVIEW_LABEL = { PENDING: "待審核", APPROVED: "已核准", REJECTED: "已退回" };
+
+function watchSubmissions() {
+  const q = query(collection(db, "submissions"), orderBy("createdAt", "desc"));
+  onSnapshot(q, (snap) => {
+    els.submissionsContainer.innerHTML = "";
+    snap.forEach((d) => {
+      const s = d.data();
+      const card = document.createElement("div");
+      card.className = "border rounded-lg p-4 mb-4 bg-white";
+      const answersHtml = (s.answers || [])
+        .map((a, i) => `<p class="mb-2"><span class="font-medium">${i + 1}. ${a.questionText}</span><br><span class="text-gray-700 whitespace-pre-wrap">${a.answerText}</span></p>`)
+        .join("");
+      card.innerHTML = `
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <p class="font-semibold">${s.userName} <span class="text-gray-500 font-normal">(${s.email})</span></p>
+            <span class="status-badge status-${s.reviewStatus}">${REVIEW_LABEL[s.reviewStatus] || s.reviewStatus}</span>
+          </div>
+          <div class="space-x-2">
+            ${s.reviewStatus === "PENDING" ? `
+              <button data-id="${d.id}" class="approve-btn bg-green-600 text-white px-3 py-1.5 rounded text-sm hover:bg-green-700">核准並發送禮券</button>
+              <button data-id="${d.id}" class="reject-btn bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-sm hover:bg-gray-300">退回</button>
+            ` : ""}
+          </div>
+        </div>
+        <div class="text-sm">${answersHtml}</div>
+        <p class="text-xs text-gray-400 mt-2" data-msg-for="${d.id}"></p>
+      `;
+      els.submissionsContainer.appendChild(card);
+    });
+
+    els.submissionsContainer.querySelectorAll(".approve-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const uid = btn.dataset.id;
+        const msgEl = els.submissionsContainer.querySelector(`[data-msg-for="${uid}"]`);
+        btn.disabled = true;
+        msgEl.textContent = "處理中...";
+        try {
+          const approveAndAssignReward = httpsCallable(functions, "approveAndAssignReward");
+          await approveAndAssignReward({ targetUid: uid });
+          msgEl.textContent = "已核准並指派禮券";
+          msgEl.className = "text-xs text-green-600 mt-2";
+        } catch (err) {
+          console.error(err);
+          msgEl.textContent = err.message || "操作失敗";
+          msgEl.className = "text-xs text-red-600 mt-2";
+          btn.disabled = false;
+        }
+      });
+    });
+    els.submissionsContainer.querySelectorAll(".reject-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        if (!confirm("確定要退回此份回饋嗎？")) return;
+        await updateDoc(doc(db, "submissions", btn.dataset.id), {
+          reviewStatus: "REJECTED",
+          reviewedAt: serverTimestamp()
+        });
+      });
+    });
+  });
+}
+
+// ---------- 4. 獎勵序號池管理（rewards 集合前端全閉鎖，需經 Cloud Functions） ----------
+async function refreshRewardStock() {
+  els.rewardStockSummary.textContent = "讀取中...";
+  try {
+    const getRewardStock = httpsCallable(functions, "getRewardStock");
+    const result = await getRewardStock({});
+    const { available, assigned, redeemed } = result.data;
+    els.rewardStockSummary.innerHTML = `
+      <span class="mr-4">可用：<b class="text-green-600">${available}</b></span>
+      <span class="mr-4">已指派：<b class="text-blue-600">${assigned}</b></span>
+      <span>已兌換：<b class="text-gray-600">${redeemed}</b></span>
+    `;
+  } catch (err) {
+    console.error(err);
+    els.rewardStockSummary.textContent = "讀取庫存失敗";
+  }
+}
+
+els.refreshStockBtn?.addEventListener("click", refreshRewardStock);
+
+els.addSerialsBtn?.addEventListener("click", async () => {
+  const raw = els.newSerialsText.value;
+  const serials = raw.split("\n").map((s) => s.trim()).filter(Boolean);
+  if (serials.length === 0) return;
+
+  els.addSerialsBtn.disabled = true;
+  els.rewardsMessage.textContent = "新增中...";
+  try {
+    const addRewardSerials = httpsCallable(functions, "addRewardSerials");
+    const result = await addRewardSerials({ serials });
+    els.rewardsMessage.textContent = `已新增 ${result.data.count} 組序號`;
+    els.rewardsMessage.className = "text-sm text-green-600 mt-2";
+    els.newSerialsText.value = "";
+    refreshRewardStock();
+  } catch (err) {
+    console.error(err);
+    els.rewardsMessage.textContent = err.message || "新增失敗";
+    els.rewardsMessage.className = "text-sm text-red-600 mt-2";
+  } finally {
+    els.addSerialsBtn.disabled = false;
+  }
+});
+
+// ---------- 5. 系統設定 ----------
+async function loadSettings() {
+  const snap = await getDoc(doc(db, "settings", "config"));
+  if (snap.exists()) {
+    const data = snap.data();
+    els.appNameInput.value = data.appName || "";
+    els.manualUrlInput.value = data.manualUrl || "";
+    els.featureIntroInput.value = data.featureIntro || "";
+    els.targetSampleSizeInput.value = data.targetSampleSize ?? 14;
+  }
+}
+
+els.settingsForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  els.settingsMessage.textContent = "儲存中...";
+  try {
+    await setDoc(doc(db, "settings", "config"), {
+      appName: els.appNameInput.value.trim(),
+      manualUrl: els.manualUrlInput.value.trim(),
+      featureIntro: els.featureIntroInput.value.trim(),
+      targetSampleSize: Number(els.targetSampleSizeInput.value) || 14
+    }, { merge: true });
+    els.settingsMessage.textContent = "設定已儲存";
+    els.settingsMessage.className = "text-sm text-green-600 mt-2";
+  } catch (err) {
+    console.error(err);
+    els.settingsMessage.textContent = "儲存失敗";
+    els.settingsMessage.className = "text-sm text-red-600 mt-2";
+  }
+});
+
+// ---------- Init ----------
+els.loginBtn?.addEventListener("click", () => signIn().catch((err) => console.error(err)));
+els.logoutBtn?.addEventListener("click", () => signOutUser());
+
+async function init(user) {
+  hide(els.loading);
+
+  if (!user) {
+    hide(els.console);
+    hide(els.deniedSection);
+    show(els.loginSection);
+    return;
+  }
+
+  const admin = await isAdmin(user);
+  if (!admin) {
+    hide(els.loginSection);
+    hide(els.console);
+    show(els.deniedSection);
+    return;
+  }
+
+  hide(els.loginSection);
+  hide(els.deniedSection);
+  show(els.console);
+  els.userName.textContent = user.displayName || user.email;
+
+  watchApplicants();
+  watchQuestions();
+  watchSubmissions();
+  loadSettings();
+  refreshRewardStock();
+}
+
+onAuthReady(init);

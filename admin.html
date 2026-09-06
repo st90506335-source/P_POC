@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>後台管理 - P_POC</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="./assets/css/style.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <nav class="bg-white border-b">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-lg font-bold text-indigo-700">P_POC 後台管理控制台</h1>
+      <div class="flex items-center gap-3">
+        <span id="userName" class="text-sm text-gray-700"></span>
+        <button id="logoutBtn" class="text-sm text-gray-500 hover:text-gray-800">登出</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-5xl mx-auto px-4 py-8">
+
+    <div id="loading" class="flex justify-center py-20">
+      <div class="spinner"></div>
+    </div>
+
+    <section id="loginSection" class="hidden text-center py-20">
+      <p class="text-gray-600 mb-4">請使用管理員 Google 帳號登入</p>
+      <button id="loginBtn" class="inline-flex items-center gap-2 bg-white border border-gray-300 shadow-sm px-6 py-3 rounded-lg hover:bg-gray-50">
+        使用 Google 帳號登入
+      </button>
+    </section>
+
+    <section id="deniedSection" class="hidden text-center py-20">
+      <p class="text-red-600 font-medium">此帳號無管理員權限，無法存取後台。</p>
+    </section>
+
+    <section id="console" class="hidden">
+
+      <div class="flex gap-2 mb-6 flex-wrap">
+        <button data-tab="applicants" class="tab-btn bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm">意願登記審核</button>
+        <button data-tab="questions" class="tab-btn bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm">題庫管理</button>
+        <button data-tab="submissions" class="tab-btn bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm">回饋審核與發券</button>
+        <button data-tab="rewards" class="tab-btn bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm">獎勵序號池</button>
+        <button data-tab="settings" class="tab-btn bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm">系統設定</button>
+      </div>
+
+      <!-- Panel: 意願登記審核 -->
+      <div data-panel="applicants" class="bg-white rounded-xl shadow-sm border p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-semibold text-lg">意願登記審核 & 批次邀請</h3>
+          <button id="sendInvitesBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700">批次發送測試邀請</button>
+        </div>
+        <p id="invitesMessage" class="text-sm mb-3"></p>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead class="text-gray-500 border-b">
+              <tr><th class="p-2"></th><th class="p-2">姓名</th><th class="p-2">Email</th><th class="p-2">手機</th><th class="p-2">狀態</th></tr>
+            </thead>
+            <tbody id="applicantsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Panel: 題庫管理 -->
+      <div data-panel="questions" class="hidden bg-white rounded-xl shadow-sm border p-6">
+        <h3 class="font-semibold text-lg mb-4">動態題庫管理</h3>
+        <div class="flex gap-2 mb-4">
+          <input id="newQuestionText" placeholder="輸入新題目..." class="flex-1 border border-gray-300 rounded-lg p-2 text-sm">
+          <input id="newQuestionOrder" type="number" placeholder="順序" class="w-24 border border-gray-300 rounded-lg p-2 text-sm">
+          <button id="addQuestionBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700">新增</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead class="text-gray-500 border-b">
+              <tr><th class="p-2">順序</th><th class="p-2">題目</th><th class="p-2">狀態</th><th class="p-2">操作</th></tr>
+            </thead>
+            <tbody id="questionsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Panel: 回饋審核與發券 -->
+      <div data-panel="submissions" class="hidden">
+        <h3 class="font-semibold text-lg mb-4">測試回饋審核與發券</h3>
+        <div id="submissionsContainer"></div>
+      </div>
+
+      <!-- Panel: 獎勵序號池 -->
+      <div data-panel="rewards" class="hidden bg-white rounded-xl shadow-sm border p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-semibold text-lg">獎勵超商序號池管理</h3>
+          <button id="refreshStockBtn" class="text-sm text-indigo-600 hover:underline">重新整理庫存</button>
+        </div>
+        <p id="rewardStockSummary" class="mb-6 text-sm"></p>
+        <label class="block text-sm font-medium text-gray-700 mb-1">批次新增序號（每行一組）</label>
+        <textarea id="newSerialsText" rows="5" class="w-full border border-gray-300 rounded-lg p-3 text-sm mb-3" placeholder="例如：&#10;ABCD1234&#10;EFGH5678"></textarea>
+        <button id="addSerialsBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700">新增序號</button>
+        <p id="rewardsMessage" class="text-sm mt-2"></p>
+      </div>
+
+      <!-- Panel: 系統設定 -->
+      <div data-panel="settings" class="hidden bg-white rounded-xl shadow-sm border p-6">
+        <h3 class="font-semibold text-lg mb-4">系統全域設定</h3>
+        <form id="settingsForm" class="space-y-4 max-w-lg">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">受測 App 正式名稱</label>
+            <input id="appNameInput" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">操作手冊下載連結</label>
+            <input id="manualUrlInput" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Page 0 招募說明文案</label>
+            <textarea id="featureIntroInput" rows="4" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">預計核心測試樣本數</label>
+            <input id="targetSampleSizeInput" type="number" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm">
+          </div>
+          <button type="submit" class="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm hover:bg-indigo-700">儲存設定</button>
+          <p id="settingsMessage" class="text-sm mt-2"></p>
+        </form>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script type="module" src="./assets/js/admin.js"></script>
+</body>
+</html>

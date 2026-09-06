@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>測試回饋 - P_POC</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="./assets/css/style.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <nav class="bg-white border-b">
+    <div class="max-w-3xl mx-auto px-4 py-4">
+      <h1 class="text-lg font-bold text-indigo-700">P_POC 測試回饋流程</h1>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-4 py-10">
+
+    <div id="loading" class="flex justify-center py-20">
+      <div class="spinner"></div>
+    </div>
+
+    <section id="loginSection" class="hidden text-center">
+      <p class="text-gray-600 mb-4">請先登入以繼續測試流程</p>
+      <button id="loginBtn" class="inline-flex items-center gap-2 bg-white border border-gray-300 shadow-sm px-6 py-3 rounded-lg hover:bg-gray-50">
+        使用 Google 帳號登入
+      </button>
+    </section>
+
+    <section id="blockedSection" class="hidden bg-white rounded-xl shadow-sm border p-8 text-center">
+      <p id="blockedMessage" class="text-gray-700"></p>
+      <a href="./index.html" class="inline-block mt-4 text-indigo-600 hover:underline text-sm">回首頁</a>
+    </section>
+
+    <section id="wizard" class="hidden">
+
+      <div class="flex items-center justify-center gap-3 mb-8">
+        <span id="indicator1" class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-indigo-600 text-white">1</span>
+        <div class="w-10 h-0.5 bg-gray-200"></div>
+        <span id="indicator2" class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-gray-200 text-gray-500">2</span>
+        <div class="w-10 h-0.5 bg-gray-200"></div>
+        <span id="indicator3" class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-gray-200 text-gray-500">3</span>
+      </div>
+
+      <div id="step1" class="bg-white rounded-xl shadow-sm border p-6">
+        <h3 class="font-semibold text-lg mb-3">Step 1 · App 說明與操作手冊</h3>
+        <p class="text-gray-600 mb-5">請先下載並閱讀操作手冊，熟悉受測 App 的使用方式後再繼續。</p>
+        <a id="manualLink" href="./assets/app-manual.pdf" target="_blank"
+          class="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg hover:bg-indigo-100 mb-6">
+          下載操作手冊 (PDF)
+        </a>
+        <div class="flex justify-end">
+          <button id="toStep2Btn" class="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700">下一步</button>
+        </div>
+      </div>
+
+      <div id="step2" class="hidden bg-white rounded-xl shadow-sm border p-6">
+        <h3 class="font-semibold text-lg mb-4">Step 2 · 測試回饋問卷</h3>
+        <div id="questionsContainer"></div>
+        <div class="flex justify-between">
+          <button id="backToStep1Btn" class="text-gray-500 px-5 py-2 rounded-lg hover:bg-gray-100">上一步</button>
+          <button id="toStep3Btn" class="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700">下一步</button>
+        </div>
+      </div>
+
+      <div id="step3" class="hidden bg-white rounded-xl shadow-sm border p-6">
+        <h3 class="font-semibold text-lg mb-4">Step 3 · 確認個人資訊並送出</h3>
+        <div class="bg-gray-50 rounded-lg p-4 mb-6 text-sm space-y-1">
+          <p><span class="text-gray-500">姓名：</span><span id="confirmName" class="font-medium"></span></p>
+          <p><span class="text-gray-500">Email：</span><span id="confirmEmail" class="font-medium"></span></p>
+        </div>
+        <p id="submitError" class="hidden text-sm text-red-600 mb-4"></p>
+        <div class="flex justify-between">
+          <button id="backToStep2Btn" class="text-gray-500 px-5 py-2 rounded-lg hover:bg-gray-100">上一步</button>
+          <button id="submitBtn" class="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700">確認送出</button>
+        </div>
+      </div>
+
+    </section>
+
+    <section id="doneSection" class="hidden bg-white rounded-xl shadow-sm border p-8 text-center">
+      <p class="text-lg font-semibold text-gray-800 mb-2">感謝您的回饋！</p>
+      <p class="text-gray-600">您的測試回饋已送出，待後台審核通過後即可至禮券兌換頁面領取獎勵。</p>
+      <a href="./index.html" class="inline-block mt-4 text-indigo-600 hover:underline text-sm">回首頁</a>
+    </section>
+
+  </main>
+
+  <script type="module" src="./assets/js/test-flow.js"></script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P_POC 開放式測試招募平台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="./assets/css/style.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <nav class="bg-white border-b">
+    <div class="max-w-3xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-lg font-bold text-indigo-700">P_POC 開放式測試招募平台</h1>
+      <div id="userBar" class="hidden flex items-center gap-3">
+        <img id="userAvatar" class="w-8 h-8 rounded-full" src="" alt="">
+        <span id="userName" class="text-sm text-gray-700"></span>
+        <button id="logoutBtn" class="text-sm text-gray-500 hover:text-gray-800">登出</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-4 py-10">
+
+    <div id="loading" class="flex justify-center py-20">
+      <div class="spinner"></div>
+    </div>
+
+    <section class="text-center mb-10">
+      <h2 id="appName" class="text-2xl font-bold text-gray-900 mb-3">受測 App 開放式測試招募</h2>
+      <p id="featureIntro" class="text-gray-600 leading-relaxed max-w-xl mx-auto">
+        我們正在招募對新功能有興趣的受測者，協助我們完善產品體驗。填寫下方意願登記表，我們將從中挑選核心受測名單並主動通知。
+      </p>
+    </section>
+
+    <section id="loginSection" class="hidden text-center">
+      <button id="loginBtn" class="inline-flex items-center gap-2 bg-white border border-gray-300 shadow-sm px-6 py-3 rounded-lg hover:bg-gray-50">
+        <svg class="w-5 h-5" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35 24 35c-6.1 0-11-4.9-11-11s4.9-11 11-11c2.8 0 5.3 1 7.3 2.7l6-6C33.5 6.5 29 4.5 24 4.5 12.7 4.5 3.5 13.7 3.5 25S12.7 45.5 24 45.5S44.5 36.3 44.5 25c0-1.5-.2-3-.5-4.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c2.8 0 5.3 1 7.3 2.7l6-6C33.5 6.5 29 4.5 24 4.5c-7.7 0-14.3 4.4-17.7 10.2z"/><path fill="#4CAF50" d="M24 45.5c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 36.7 26.7 37.5 24 37.5c-5.3 0-9.7-3.4-11.3-8.1l-6.5 5C9.6 40.9 16.2 45.5 24 45.5z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.6l6.2 5.2C40.9 36 44.5 31 44.5 25c0-1.5-.2-3-.9-4.5z"/></svg>
+        使用 Google 帳號登入
+      </button>
+    </section>
+
+    <section id="formSection" class="hidden bg-white rounded-xl shadow-sm border p-6">
+      <h3 class="font-semibold text-lg mb-4">填寫受測意願登記表</h3>
+      <form id="applyForm" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">聯絡手機</label>
+          <input id="phone" type="tel" placeholder="09xxxxxxxx"
+            class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+        <div class="flex items-center gap-2">
+          <input id="willingToTest" type="checkbox" class="w-4 h-4">
+          <label for="willingToTest" class="text-sm text-gray-700">我願意參與本次開放式測試</label>
+        </div>
+        <p id="formError" class="hidden text-sm text-red-600"></p>
+        <button id="submitBtn" type="submit"
+          class="w-full bg-indigo-600 text-white font-medium py-2.5 rounded-lg hover:bg-indigo-700 transition">
+          送出登記
+        </button>
+      </form>
+    </section>
+
+    <section id="statusSection" class="hidden bg-white rounded-xl shadow-sm border p-6 text-center">
+      <p class="text-sm text-gray-500 mb-2">您的登記狀態</p>
+      <span id="statusBadge" class="status-badge mb-3"></span>
+      <p id="statusMessage" class="text-gray-700 mt-3"></p>
+      <a href="./test.html" class="inline-block mt-4 text-indigo-600 hover:underline text-sm">前往測試流程頁面 →</a>
+    </section>
+
+  </main>
+
+  <footer class="text-center text-xs text-gray-400 py-8">
+    P_POC Proof of Concept · 開放式測試招募平台
+  </footer>
+
+  <script type="module" src="./assets/js/page0.js"></script>
+</body>
+</html>

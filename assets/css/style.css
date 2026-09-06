@@ -1,0 +1,33 @@
+/* style.css — 共用最小自訂樣式（版面主要交由 Tailwind CDN 處理） */
+
+body {
+  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+}
+
+.spinner {
+  border: 3px solid #e5e7eb;
+  border-top-color: #4f46e5;
+  border-radius: 9999px;
+  width: 2rem;
+  height: 2rem;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.status-APPLIED   { background: #fef3c7; color: #92400e; }
+.status-INVITED   { background: #dbeafe; color: #1e40af; }
+.status-REJECTED  { background: #fee2e2; color: #991b1b; }
+.status-PENDING   { background: #fef3c7; color: #92400e; }
+.status-APPROVED  { background: #dcfce7; color: #166534; }
