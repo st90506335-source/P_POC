@@ -60,6 +60,7 @@ const els = {
   newQuestionType: $("newQuestionType"),
   newQuestionOrder: $("newQuestionOrder"),
   newQuestionOptions: $("newQuestionOptions"),
+  newQuestionAllowOther: $("newQuestionAllowOther"),
   newQuestionRatingMax: $("newQuestionRatingMax"),
   newQuestionSliderMin: $("newQuestionSliderMin"),
   newQuestionSliderMax: $("newQuestionSliderMax"),
@@ -187,7 +188,7 @@ function watchQuestions() {
       tr.innerHTML = `
         <td class="p-2">${qst.sortOrder ?? 0}</td>
         <td class="p-2">${qst.questionText}</td>
-        <td class="p-2 text-gray-500">${QUESTION_TYPE_LABEL[type] || type}</td>
+        <td class="p-2 text-gray-500">${QUESTION_TYPE_LABEL[type] || type}${qst.allowOther ? " ＋其他" : ""}</td>
         <td class="p-2">
           <button data-id="${d.id}" data-active="${qst.isActive}" class="toggle-active px-2 py-1 rounded text-xs ${qst.isActive ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-600"}">
             ${qst.isActive ? "啟用中" : "已停用"}
@@ -237,6 +238,7 @@ els.addQuestionBtn?.addEventListener("click", async () => {
       return;
     }
     questionDoc.options = options;
+    questionDoc.allowOther = !!els.newQuestionAllowOther.checked;
   } else if (type === "RATING") {
     questionDoc.ratingMax = Number(els.newQuestionRatingMax.value) || 5;
   } else if (type === "SLIDER") {
@@ -261,6 +263,7 @@ els.addQuestionBtn?.addEventListener("click", async () => {
   els.newQuestionText.value = "";
   els.newQuestionOrder.value = "";
   els.newQuestionOptions.value = "";
+  els.newQuestionAllowOther.checked = false;
 });
 
 // ---------- 3. 回饋審核與發券 ----------

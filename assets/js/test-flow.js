@@ -77,21 +77,41 @@ function renderQuestionInput(qst) {
 
   if (type === "SINGLE_CHOICE" || type === "YES_NO") {
     const options = type === "YES_NO" ? ["是", "否"] : (qst.options || []);
-    return options.map((opt) => `
+    let html = options.map((opt) => `
       <label class="flex items-center gap-2 mb-2 cursor-pointer">
         <input type="radio" name="q_${qst.id}" value="${opt}" class="w-4 h-4">
         <span>${opt}</span>
       </label>
     `).join("");
+    if (type === "SINGLE_CHOICE" && qst.allowOther) {
+      html += `
+        <label class="flex items-center gap-2 mb-2 cursor-pointer">
+          <input type="radio" name="q_${qst.id}" class="w-4 h-4 other-radio">
+          <span class="whitespace-nowrap">其他：</span>
+          <input type="text" class="other-input flex-1 border-b border-gray-300 focus:outline-none focus:border-indigo-500 px-1 py-0.5 text-sm" placeholder="請輸入">
+        </label>
+      `;
+    }
+    return html;
   }
 
   if (type === "MULTIPLE_CHOICE") {
-    return (qst.options || []).map((opt) => `
+    let html = (qst.options || []).map((opt) => `
       <label class="flex items-center gap-2 mb-2 cursor-pointer">
         <input type="checkbox" value="${opt}" class="w-4 h-4">
         <span>${opt}</span>
       </label>
     `).join("");
+    if (qst.allowOther) {
+      html += `
+        <label class="flex items-center gap-2 mb-2 cursor-pointer">
+          <input type="checkbox" class="w-4 h-4 other-checkbox">
+          <span class="whitespace-nowrap">其他：</span>
+          <input type="text" class="other-input flex-1 border-b border-gray-300 focus:outline-none focus:border-indigo-500 px-1 py-0.5 text-sm" placeholder="請輸入">
+        </label>
+      `;
+    }
+    return html;
   }
 
   if (type === "RATING") {
@@ -175,14 +195,38 @@ function collectAnswers() {
 
     if (type === "SINGLE_CHOICE" || type === "YES_NO") {
       const checked = wrap.querySelector('input[type="radio"]:checked');
-      answerValue = checked ? checked.value : null;
-      answerText = answerValue || "";
-      if (!answerValue) allFilled = false;
+      if (checked?.classList.contains("other-radio")) {
+        const otherText = wrap.querySelector(".other-input")?.value.trim() || "";
+        answerValue = otherText || null;
+        answerText = otherText ? `其他：${otherText}` : "";
+        if (!otherText) allFilled = false;
+      } else {
+        answerValue = checked ? checked.value : null;
+        answerText = answerValue || "";
+        if (!answerValue) allFilled = false;
+      }
     } else if (type === "MULTIPLE_CHOICE") {
-      const checked = Array.from(wrap.querySelectorAll('input[type="checkbox"]:checked')).map((c) => c.value);
-      answerValue = checked;
-      answerText = checked.join("、");
-      if (checked.length === 0) allFilled = false;
+      const checked = Array.from(wrap.querySelectorAll('input[type="checkbox"]:checked'));
+      const values = [];
+      const displayValues = [];
+      let otherOk = true;
+      checked.forEach((cb) => {
+        if (cb.classList.contains("other-checkbox")) {
+          const otherText = wrap.querySelector(".other-input")?.value.trim() || "";
+          if (otherText) {
+            values.push(otherText);
+            displayValues.push(`其他：${otherText}`);
+          } else {
+            otherOk = false;
+          }
+        } else {
+          values.push(cb.value);
+          displayValues.push(cb.value);
+        }
+      });
+      answerValue = values;
+      answerText = displayValues.join("、");
+      if (values.length === 0 || !otherOk) allFilled = false;
     } else if (type === "RATING") {
       const rating = Number(wrap.querySelector(".rating-stars")?.dataset.value || 0);
       answerValue = rating;
