@@ -5,3 +5,5 @@ node_modules/
 .firebase/
 .DS_Store
 functions/node_modules/
+*firebase-adminsdk*.json
+serviceAccountKey*.json
