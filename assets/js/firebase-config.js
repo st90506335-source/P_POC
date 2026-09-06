@@ -9,12 +9,13 @@ import { getFunctions } from "https://www.gstatic.com/firebasejs/10.12.0/firebas
 
 // TODO：請至 Firebase Console > 專案設定 取得實際參數並替換以下設定值
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "ppoc-xxxx.firebaseapp.com",
-  projectId: "ppoc-xxxx",
-  storageBucket: "ppoc-xxxx.appspot.com",
-  messagingSenderId: "xxxx",
-  appId: "xxxx"
+  apiKey: "AIzaSyCkIuQSBoc5bzJ9Tz3PhdUQL3_gIlFmVck",
+  authDomain: "project-527b8c4a-cfeb-4c25-85c.firebaseapp.com",
+  projectId: "project-527b8c4a-cfeb-4c25-85c",
+  storageBucket: "project-527b8c4a-cfeb-4c25-85c.firebasestorage.app",
+  messagingSenderId: "499931946357",
+  appId: "1:499931946357:web:958006c31148fda215c73c",
+  measurementId: "G-9M69E9604R"
 };
 
 const app = initializeApp(firebaseConfig);
