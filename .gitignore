@@ -7,3 +7,5 @@ node_modules/
 functions/node_modules/
 *firebase-adminsdk*.json
 serviceAccountKey*.json
+.claude/
+server/node_modules/

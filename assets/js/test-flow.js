@@ -148,12 +148,12 @@ async function handleFinalSubmit() {
   }
 }
 
-function blockWith(message) {
+function blockWith(html) {
   hide(els.loading);
   hide(els.wizard);
   hide(els.loginSection);
   show(els.blockedSection);
-  els.blockedMessage.textContent = message;
+  els.blockedMessage.innerHTML = html;
 }
 
 async function init(user) {
@@ -174,12 +174,12 @@ async function init(user) {
   const submissionSnap = await getDoc(doc(db, "submissions", user.uid));
   if (submissionSnap.exists()) {
     const status = submissionSnap.data().reviewStatus;
-    const text = {
+    const html = {
       PENDING: "您已送出測試回饋，目前狀態：待審核",
-      APPROVED: "您的測試回饋已審核通過，請至禮券兌換頁面領取獎勵",
+      APPROVED: '您的測試回饋已審核通過！<br><a href="./redeem.html" class="text-indigo-600 hover:underline font-medium mt-2 inline-block">前往禮券兌換頁面 →</a>',
       REJECTED: "您的測試回饋審核未通過"
     }[status] || "您已送出測試回饋";
-    blockWith(text);
+    blockWith(html);
     return;
   }
 

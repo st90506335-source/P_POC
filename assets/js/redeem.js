@@ -1,10 +1,10 @@
 // redeem.js — redeem.html（Page 4：獎勵超商序號兌換頁）
-// 對應規格書 3.2 節：向後端安全呼叫請求序號（rewards 集合前端全閉鎖，僅能透過 Cloud Function 取得）
+// 對應規格書 3.2 節：向後端安全呼叫請求序號（rewards 集合前端全閉鎖，僅能透過後端 API 取得）
 
-import { db, functions } from "./firebase-config.js";
+import { db } from "./firebase-config.js";
+import { API_BASE_URL } from "./api-config.js";
 import { onAuthReady, signIn } from "./auth-guard.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -17,6 +17,7 @@ const els = {
   rewardSection: $("rewardSection"),
   serialText: $("serialText"),
   barcodeSvg: $("barcodeSvg"),
+  qrContainer: $("qrContainer"),
   rewardError: $("rewardError")
 };
 
@@ -46,9 +47,15 @@ async function init(user) {
   }
 
   try {
-    const getRewardSerial = httpsCallable(functions, "getRewardSerial");
-    const result = await getRewardSerial({});
-    const { serialNumber } = result.data;
+    const idToken = await user.getIdToken();
+    const res = await fetch(`${API_BASE_URL}/api/getRewardSerial`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+      body: JSON.stringify({})
+    });
+    const result = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(result.error || `請求失敗 (${res.status})`);
+    const { serialNumber } = result;
 
     show(els.rewardSection);
     els.serialText.textContent = serialNumber;
@@ -61,6 +68,11 @@ async function init(user) {
         height: 80,
         displayValue: false
       });
+    }
+
+    if (window.QRCode && els.qrContainer) {
+      els.qrContainer.innerHTML = "";
+      new window.QRCode(els.qrContainer, { text: serialNumber, width: 160, height: 160 });
     }
   } catch (err) {
     console.error(err);

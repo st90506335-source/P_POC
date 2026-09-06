@@ -14,15 +14,20 @@ service cloud.firestore {
       allow write: if request.auth.token.admin == true;
     }
 
-    // 意願登記：每位用戶只能建立/讀取自己的登記紀錄 (Doc ID == request.auth.uid)
+    // 意願登記：一般用戶只能讀取/建立自己的登記紀錄 (Doc ID == request.auth.uid)
+    // Admin 可讀取全部紀錄（後台審核列表需要 list 整個 collection）
     match /applicants/{uid} {
-      allow read, create: if request.auth != null && request.auth.uid == uid;
+      allow read: if request.auth != null &&
+        (request.auth.uid == uid || request.auth.token.admin == true);
+      allow create: if request.auth != null && request.auth.uid == uid;
       allow update, delete: if request.auth.token.admin == true;
     }
 
-    // 正式回饋：僅限登入用戶提交自己的紀錄
+    // 正式回饋：一般用戶僅限提交/讀取自己的紀錄，Admin 可讀取全部以供審核
     match /submissions/{uid} {
-      allow read, create: if request.auth != null && request.auth.uid == uid;
+      allow read: if request.auth != null &&
+        (request.auth.uid == uid || request.auth.token.admin == true);
+      allow create: if request.auth != null && request.auth.uid == uid;
       allow update, delete: if request.auth.token.admin == true;
     }
 

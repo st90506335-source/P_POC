@@ -6,6 +6,7 @@
 <title>禮券兌換 - P_POC</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link rel="stylesheet" href="./assets/css/style.css">
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -35,11 +36,12 @@
     </section>
 
     <section id="rewardSection" class="hidden bg-white rounded-xl shadow-sm border p-8 text-center">
-      <p class="text-gray-500 text-sm mb-4">請至超商門市出示以下條碼供店員刷讀兌換</p>
+      <p class="text-gray-500 text-sm mb-4">請至超商門市出示以下條碼或 QR Code 供店員刷讀兌換</p>
       <div class="flex justify-center mb-4">
         <svg id="barcodeSvg"></svg>
       </div>
-      <p id="serialText" class="text-xl font-mono font-semibold tracking-widest text-gray-800"></p>
+      <p id="serialText" class="text-xl font-mono font-semibold tracking-widest text-gray-800 mb-6"></p>
+      <div id="qrContainer" class="flex justify-center"></div>
       <p id="rewardError" class="hidden text-sm text-red-600 mt-4"></p>
     </section>
 

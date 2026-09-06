@@ -98,6 +98,16 @@
         <textarea id="newSerialsText" rows="5" class="w-full border border-gray-300 rounded-lg p-3 text-sm mb-3" placeholder="例如：&#10;ABCD1234&#10;EFGH5678"></textarea>
         <button id="addSerialsBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700">新增序號</button>
         <p id="rewardsMessage" class="text-sm mt-2"></p>
+
+        <h4 class="font-semibold text-sm text-gray-700 mt-8 mb-3">序號明細清單</h4>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead class="text-gray-500 border-b">
+              <tr><th class="p-2">序號</th><th class="p-2">狀態</th><th class="p-2">指派對象</th><th class="p-2">指派時間</th><th class="p-2">兌換時間</th></tr>
+            </thead>
+            <tbody id="rewardsTbody"></tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Panel: 系統設定 -->

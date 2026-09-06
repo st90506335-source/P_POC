@@ -1,7 +1,8 @@
 // admin.js — admin.html（後台管理控制台，限 Admin Google 帳號存取）
 // 對應規格書 3.2 / 5 節：審核介面、題庫 CRUD、庫存管理、批次邀請、核准發券
 
-import { db, functions } from "./firebase-config.js";
+import { db, auth } from "./firebase-config.js";
+import { API_BASE_URL } from "./api-config.js";
 import { onAuthReady, isAdmin, signIn, signOutUser } from "./auth-guard.js";
 import {
   doc,
@@ -17,7 +18,18 @@ import {
   onSnapshot,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
+
+async function callApi(path, { method = "POST", body } = {}) {
+  const idToken = await auth.currentUser.getIdToken();
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method,
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+    body: body !== undefined ? JSON.stringify(body) : undefined
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `請求失敗 (${res.status})`);
+  return data;
+}
 
 const $ = (id) => document.getElementById(id);
 function show(el) { el && el.classList.remove("hidden"); }
@@ -55,6 +67,7 @@ const els = {
   newSerialsText: $("newSerialsText"),
   addSerialsBtn: $("addSerialsBtn"),
   rewardsMessage: $("rewardsMessage"),
+  rewardsTbody: $("rewardsTbody"),
 
   // 系統設定
   settingsForm: $("settingsForm"),
@@ -117,9 +130,8 @@ els.sendInvitesBtn?.addEventListener("click", async () => {
   els.invitesMessage.className = "text-sm text-gray-500 mt-2";
 
   try {
-    const sendInvites = httpsCallable(functions, "sendInvites");
-    const result = await sendInvites({ targetUids });
-    els.invitesMessage.textContent = `成功發送 ${result.data.count} 封測試邀請`;
+    const result = await callApi("/api/sendInvites", { body: { targetUids } });
+    els.invitesMessage.textContent = `成功發送 ${result.count} 封測試邀請`;
     els.invitesMessage.className = "text-sm text-green-600 mt-2";
   } catch (err) {
     console.error(err);
@@ -225,8 +237,7 @@ function watchSubmissions() {
         btn.disabled = true;
         msgEl.textContent = "處理中...";
         try {
-          const approveAndAssignReward = httpsCallable(functions, "approveAndAssignReward");
-          await approveAndAssignReward({ targetUid: uid });
+          await callApi("/api/approveAndAssignReward", { body: { targetUid: uid } });
           msgEl.textContent = "已核准並指派禮券";
           msgEl.className = "text-xs text-green-600 mt-2";
         } catch (err) {
@@ -249,13 +260,18 @@ function watchSubmissions() {
   });
 }
 
-// ---------- 4. 獎勵序號池管理（rewards 集合前端全閉鎖，需經 Cloud Functions） ----------
+// ---------- 4. 獎勵序號池管理（rewards 集合前端全閉鎖，需經後端 API） ----------
+const REWARD_STATUS_LABEL = { AVAILABLE: "可用", ASSIGNED: "已指派", REDEEMED: "已兌換" };
+
+function formatDateTime(iso) {
+  if (!iso) return "";
+  return new Date(iso).toLocaleString("zh-TW");
+}
+
 async function refreshRewardStock() {
   els.rewardStockSummary.textContent = "讀取中...";
   try {
-    const getRewardStock = httpsCallable(functions, "getRewardStock");
-    const result = await getRewardStock({});
-    const { available, assigned, redeemed } = result.data;
+    const { available, assigned, redeemed } = await callApi("/api/getRewardStock", { method: "GET" });
     els.rewardStockSummary.innerHTML = `
       <span class="mr-4">可用：<b class="text-green-600">${available}</b></span>
       <span class="mr-4">已指派：<b class="text-blue-600">${assigned}</b></span>
@@ -267,7 +283,35 @@ async function refreshRewardStock() {
   }
 }
 
-els.refreshStockBtn?.addEventListener("click", refreshRewardStock);
+async function refreshRewardList() {
+  if (!els.rewardsTbody) return;
+  try {
+    const { rewards } = await callApi("/api/getRewardList", { method: "GET" });
+    els.rewardsTbody.innerHTML = "";
+    rewards.forEach((r) => {
+      const who = r.assignedToName ? `${r.assignedToName}（${r.assignedToEmail}）` : "—";
+      const tr = document.createElement("tr");
+      tr.className = "border-b";
+      tr.innerHTML = `
+        <td class="p-2 font-mono">${r.serialNumber}</td>
+        <td class="p-2"><span class="status-badge status-${r.status === "AVAILABLE" ? "APPLIED" : r.status === "ASSIGNED" ? "INVITED" : "APPROVED"}">${REWARD_STATUS_LABEL[r.status] || r.status}</span></td>
+        <td class="p-2">${who}</td>
+        <td class="p-2 text-gray-500">${formatDateTime(r.assignedAt)}</td>
+        <td class="p-2 text-gray-500">${formatDateTime(r.redeemedAt)}</td>
+      `;
+      els.rewardsTbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error(err);
+    els.rewardsTbody.innerHTML = `<tr><td class="p-2 text-red-600" colspan="5">讀取序號清單失敗</td></tr>`;
+  }
+}
+
+async function refreshRewards() {
+  await Promise.all([refreshRewardStock(), refreshRewardList()]);
+}
+
+els.refreshStockBtn?.addEventListener("click", refreshRewards);
 
 els.addSerialsBtn?.addEventListener("click", async () => {
   const raw = els.newSerialsText.value;
@@ -277,12 +321,11 @@ els.addSerialsBtn?.addEventListener("click", async () => {
   els.addSerialsBtn.disabled = true;
   els.rewardsMessage.textContent = "新增中...";
   try {
-    const addRewardSerials = httpsCallable(functions, "addRewardSerials");
-    const result = await addRewardSerials({ serials });
-    els.rewardsMessage.textContent = `已新增 ${result.data.count} 組序號`;
+    const result = await callApi("/api/addRewardSerials", { body: { serials } });
+    els.rewardsMessage.textContent = `已新增 ${result.count} 組序號`;
     els.rewardsMessage.className = "text-sm text-green-600 mt-2";
     els.newSerialsText.value = "";
-    refreshRewardStock();
+    refreshRewards();
   } catch (err) {
     console.error(err);
     els.rewardsMessage.textContent = err.message || "新增失敗";
@@ -354,7 +397,7 @@ async function init(user) {
   watchQuestions();
   watchSubmissions();
   loadSettings();
-  refreshRewardStock();
+  refreshRewards();
 }
 
 onAuthReady(init);
