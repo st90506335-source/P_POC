@@ -7,6 +7,7 @@ import { onAuthReady, isAdmin, signIn, signOutUser } from "./auth-guard.js";
 import {
   doc,
   getDoc,
+  getDocs,
   setDoc,
   updateDoc,
   deleteDoc,
@@ -16,7 +17,8 @@ import {
   where,
   orderBy,
   onSnapshot,
-  serverTimestamp
+  serverTimestamp,
+  writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 async function callApi(path, { method = "POST", body } = {}) {
@@ -186,6 +188,18 @@ els.addQuestionBtn?.addEventListener("click", async () => {
   const text = els.newQuestionText.value.trim();
   const order = Number(els.newQuestionOrder.value) || 0;
   if (!text) return;
+
+  // 插入指定順序時，將原本該順序（含）之後的題目依序往後遞補，
+  // 避免多題共用同一個 sortOrder 導致排序不明確
+  const shiftQuery = query(collection(db, "questions"), where("sortOrder", ">=", order));
+  const shiftSnap = await getDocs(shiftQuery);
+  if (!shiftSnap.empty) {
+    const batch = writeBatch(db);
+    shiftSnap.forEach((d) => {
+      batch.update(d.ref, { sortOrder: d.data().sortOrder + 1 });
+    });
+    await batch.commit();
+  }
 
   await addDoc(collection(db, "questions"), {
     questionText: text,
