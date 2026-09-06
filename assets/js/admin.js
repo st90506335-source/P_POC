@@ -164,6 +164,20 @@ const QUESTION_TYPE_LABEL = {
   SLIDER: "滑桿"
 };
 
+function escapeAttr(str) {
+  return String(str).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+}
+
+function questionConfigSummary(qst, type) {
+  if (type === "SINGLE_CHOICE" || type === "MULTIPLE_CHOICE") {
+    const opts = (qst.options || []).join("、");
+    return qst.allowOther ? `選項：${opts}（＋其他）` : `選項：${opts}`;
+  }
+  if (type === "RATING") return `最多 ${qst.ratingMax || 5} 顆星`;
+  if (type === "SLIDER") return `範圍 ${qst.sliderMin ?? 0} ~ ${qst.sliderMax ?? 10}（間距 ${qst.sliderStep ?? 1}）`;
+  return "";
+}
+
 function updateQuestionConfigFields() {
   const type = els.newQuestionType.value;
   hide(els.choiceOptionsField);
@@ -183,12 +197,16 @@ function watchQuestions() {
     snap.forEach((d) => {
       const qst = d.data();
       const type = qst.type || "TEXT";
+      const configSummary = questionConfigSummary(qst, type);
+      const typeLabel = `${QUESTION_TYPE_LABEL[type] || type}${qst.allowOther ? " ＋其他" : ""}`;
       const tr = document.createElement("tr");
       tr.className = "border-b";
       tr.innerHTML = `
         <td class="p-2">${qst.sortOrder ?? 0}</td>
         <td class="p-2">${qst.questionText}</td>
-        <td class="p-2 text-gray-500">${QUESTION_TYPE_LABEL[type] || type}${qst.allowOther ? " ＋其他" : ""}</td>
+        <td class="p-2 text-gray-500">${configSummary
+          ? `<span title="${escapeAttr(configSummary)}" class="border-b border-dotted border-gray-400 cursor-help">${typeLabel}</span>`
+          : typeLabel}</td>
         <td class="p-2">
           <button data-id="${d.id}" data-active="${qst.isActive}" class="toggle-active px-2 py-1 rounded text-xs ${qst.isActive ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-600"}">
             ${qst.isActive ? "啟用中" : "已停用"}
