@@ -190,55 +190,193 @@ function updateQuestionConfigFields() {
 els.newQuestionType?.addEventListener("change", updateQuestionConfigFields);
 updateQuestionConfigFields();
 
+const editingQuestionIds = new Set();
+let lastQuestionsDocs = [];
+
+function renderQuestionEditRow(id, qst) {
+  const type = qst.type || "TEXT";
+  const isChoice = type === "SINGLE_CHOICE" || type === "MULTIPLE_CHOICE";
+  return `
+    <tr class="border-b bg-indigo-50" data-edit-row="${id}">
+      <td class="p-2 align-top">
+        <input type="number" class="edit-order w-16 border border-gray-300 rounded p-1 text-sm" value="${qst.sortOrder ?? 0}">
+      </td>
+      <td class="p-2 align-top" colspan="4">
+        <div class="space-y-2 max-w-lg">
+          <input type="text" class="edit-text w-full border border-gray-300 rounded-lg p-2 text-sm" value="${escapeAttr(qst.questionText)}">
+          <select class="edit-type border border-gray-300 rounded-lg p-2 text-sm">
+            <option value="TEXT" ${type === "TEXT" ? "selected" : ""}>文字</option>
+            <option value="SINGLE_CHOICE" ${type === "SINGLE_CHOICE" ? "selected" : ""}>單選</option>
+            <option value="MULTIPLE_CHOICE" ${type === "MULTIPLE_CHOICE" ? "selected" : ""}>多選</option>
+            <option value="YES_NO" ${type === "YES_NO" ? "selected" : ""}>是非題</option>
+            <option value="RATING" ${type === "RATING" ? "selected" : ""}>評星</option>
+            <option value="SLIDER" ${type === "SLIDER" ? "selected" : ""}>滑桿</option>
+          </select>
+
+          <div class="edit-choice-field ${isChoice ? "" : "hidden"}">
+            <textarea class="edit-options w-full border border-gray-300 rounded-lg p-2 text-sm" rows="3">${(qst.options || []).join("\n")}</textarea>
+            <label class="flex items-center gap-2 mt-2 text-sm text-gray-700">
+              <input type="checkbox" class="edit-allow-other w-4 h-4" ${qst.allowOther ? "checked" : ""}>
+              允許「其他（請說明）」自由回答
+            </label>
+          </div>
+
+          <div class="edit-rating-field ${type === "RATING" ? "" : "hidden"} flex items-center gap-2">
+            <label class="text-xs text-gray-500">星星上限</label>
+            <input type="number" class="edit-rating-max w-20 border border-gray-300 rounded-lg p-1 text-sm" value="${qst.ratingMax || 5}">
+          </div>
+
+          <div class="edit-slider-field ${type === "SLIDER" ? "" : "hidden"} flex items-center gap-3">
+            <label class="text-xs text-gray-500">最小值 <input type="number" class="edit-slider-min w-16 border border-gray-300 rounded-lg p-1 text-sm ml-1" value="${qst.sliderMin ?? 0}"></label>
+            <label class="text-xs text-gray-500">最大值 <input type="number" class="edit-slider-max w-16 border border-gray-300 rounded-lg p-1 text-sm ml-1" value="${qst.sliderMax ?? 10}"></label>
+            <label class="text-xs text-gray-500">間距 <input type="number" class="edit-slider-step w-16 border border-gray-300 rounded-lg p-1 text-sm ml-1" value="${qst.sliderStep ?? 1}"></label>
+          </div>
+
+          <div class="flex gap-2 pt-1">
+            <button data-id="${id}" class="save-question bg-indigo-600 text-white px-3 py-1.5 rounded text-sm hover:bg-indigo-700">儲存</button>
+            <button data-id="${id}" class="cancel-edit-question bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-sm hover:bg-gray-300">取消</button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+function renderQuestionsTable(docs) {
+  els.questionsTbody.innerHTML = "";
+  docs.forEach((d) => {
+    const qst = d.data();
+    const type = qst.type || "TEXT";
+
+    if (editingQuestionIds.has(d.id)) {
+      els.questionsTbody.insertAdjacentHTML("beforeend", renderQuestionEditRow(d.id, qst));
+      return;
+    }
+
+    const configSummary = questionConfigSummary(qst, type);
+    const typeLabel = `${QUESTION_TYPE_LABEL[type] || type}${qst.allowOther ? " ＋其他" : ""}`;
+    const tr = document.createElement("tr");
+    tr.className = "border-b";
+    tr.innerHTML = `
+      <td class="p-2">${qst.sortOrder ?? 0}</td>
+      <td class="p-2">${qst.questionText}</td>
+      <td class="p-2 text-gray-500">${configSummary
+        ? `<span title="${escapeAttr(configSummary)}" class="border-b border-dotted border-gray-400 cursor-help">${typeLabel}</span>`
+        : typeLabel}</td>
+      <td class="p-2">
+        <button data-id="${d.id}" data-active="${qst.isActive}" class="toggle-active px-2 py-1 rounded text-xs ${qst.isActive ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-600"}">
+          ${qst.isActive ? "啟用中" : "已停用"}
+        </button>
+      </td>
+      <td class="p-2 space-x-2">
+        <button data-id="${d.id}" class="edit-question text-indigo-600 text-sm hover:underline">修改</button>
+        <button data-id="${d.id}" class="delete-question text-red-600 text-sm hover:underline">刪除</button>
+      </td>
+    `;
+    els.questionsTbody.appendChild(tr);
+
+    if (configSummary) {
+      const subTr = document.createElement("tr");
+      subTr.className = "border-b";
+      subTr.innerHTML = `<td></td><td colspan="4" class="pl-6 pb-2 text-xs text-gray-400">${configSummary}</td>`;
+      els.questionsTbody.appendChild(subTr);
+    }
+  });
+
+  els.questionsTbody.querySelectorAll(".toggle-active").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const isActive = btn.dataset.active === "true";
+      await updateDoc(doc(db, "questions", btn.dataset.id), { isActive: !isActive });
+    });
+  });
+  els.questionsTbody.querySelectorAll(".delete-question").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      if (confirm("確定要刪除此題目嗎？")) {
+        await deleteDoc(doc(db, "questions", btn.dataset.id));
+      }
+    });
+  });
+  els.questionsTbody.querySelectorAll(".edit-question").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      editingQuestionIds.add(btn.dataset.id);
+      renderQuestionsTable(lastQuestionsDocs);
+    });
+  });
+  els.questionsTbody.querySelectorAll(".cancel-edit-question").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      editingQuestionIds.delete(btn.dataset.id);
+      renderQuestionsTable(lastQuestionsDocs);
+    });
+  });
+  els.questionsTbody.querySelectorAll('[data-edit-row] .edit-type').forEach((select) => {
+    select.addEventListener("change", () => {
+      const row = select.closest("[data-edit-row]");
+      const type = select.value;
+      row.querySelector(".edit-choice-field")?.classList.toggle("hidden", !(type === "SINGLE_CHOICE" || type === "MULTIPLE_CHOICE"));
+      row.querySelector(".edit-rating-field")?.classList.toggle("hidden", type !== "RATING");
+      row.querySelector(".edit-slider-field")?.classList.toggle("hidden", type !== "SLIDER");
+    });
+  });
+  els.questionsTbody.querySelectorAll(".save-question").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const row = btn.closest("[data-edit-row]");
+      const id = btn.dataset.id;
+      const text = row.querySelector(".edit-text").value.trim();
+      const type = row.querySelector(".edit-type").value;
+      const order = Number(row.querySelector(".edit-order").value) || 0;
+      if (!text) {
+        alert("題目內容不可空白");
+        return;
+      }
+
+      const update = { questionText: text, type, sortOrder: order };
+      if (type === "SINGLE_CHOICE" || type === "MULTIPLE_CHOICE") {
+        const options = row.querySelector(".edit-options").value.split("\n").map((s) => s.trim()).filter(Boolean);
+        if (options.length < 2) {
+          alert("選項至少需要 2 個");
+          return;
+        }
+        update.options = options;
+        update.allowOther = !!row.querySelector(".edit-allow-other").checked;
+        update.ratingMax = null;
+        update.sliderMin = null;
+        update.sliderMax = null;
+        update.sliderStep = null;
+      } else if (type === "RATING") {
+        update.ratingMax = Number(row.querySelector(".edit-rating-max").value) || 5;
+        update.options = null;
+        update.allowOther = null;
+        update.sliderMin = null;
+        update.sliderMax = null;
+        update.sliderStep = null;
+      } else if (type === "SLIDER") {
+        update.sliderMin = Number(row.querySelector(".edit-slider-min").value) || 0;
+        update.sliderMax = Number(row.querySelector(".edit-slider-max").value) || 10;
+        update.sliderStep = Number(row.querySelector(".edit-slider-step").value) || 1;
+        update.options = null;
+        update.allowOther = null;
+        update.ratingMax = null;
+      } else {
+        update.options = null;
+        update.allowOther = null;
+        update.ratingMax = null;
+        update.sliderMin = null;
+        update.sliderMax = null;
+        update.sliderStep = null;
+      }
+
+      await updateDoc(doc(db, "questions", id), update);
+      editingQuestionIds.delete(id);
+      renderQuestionsTable(lastQuestionsDocs);
+    });
+  });
+}
+
 function watchQuestions() {
   const q = query(collection(db, "questions"), orderBy("sortOrder", "asc"));
   onSnapshot(q, (snap) => {
-    els.questionsTbody.innerHTML = "";
-    snap.forEach((d) => {
-      const qst = d.data();
-      const type = qst.type || "TEXT";
-      const configSummary = questionConfigSummary(qst, type);
-      const typeLabel = `${QUESTION_TYPE_LABEL[type] || type}${qst.allowOther ? " ＋其他" : ""}`;
-      const tr = document.createElement("tr");
-      tr.className = "border-b";
-      tr.innerHTML = `
-        <td class="p-2">${qst.sortOrder ?? 0}</td>
-        <td class="p-2">${qst.questionText}</td>
-        <td class="p-2 text-gray-500">${configSummary
-          ? `<span title="${escapeAttr(configSummary)}" class="border-b border-dotted border-gray-400 cursor-help">${typeLabel}</span>`
-          : typeLabel}</td>
-        <td class="p-2">
-          <button data-id="${d.id}" data-active="${qst.isActive}" class="toggle-active px-2 py-1 rounded text-xs ${qst.isActive ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-600"}">
-            ${qst.isActive ? "啟用中" : "已停用"}
-          </button>
-        </td>
-        <td class="p-2">
-          <button data-id="${d.id}" class="delete-question text-red-600 text-sm hover:underline">刪除</button>
-        </td>
-      `;
-      els.questionsTbody.appendChild(tr);
-
-      if (configSummary) {
-        const subTr = document.createElement("tr");
-        subTr.className = "border-b";
-        subTr.innerHTML = `<td></td><td colspan="4" class="pl-6 pb-2 text-xs text-gray-400">${configSummary}</td>`;
-        els.questionsTbody.appendChild(subTr);
-      }
-    });
-
-    els.questionsTbody.querySelectorAll(".toggle-active").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const isActive = btn.dataset.active === "true";
-        await updateDoc(doc(db, "questions", btn.dataset.id), { isActive: !isActive });
-      });
-    });
-    els.questionsTbody.querySelectorAll(".delete-question").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        if (confirm("確定要刪除此題目嗎？")) {
-          await deleteDoc(doc(db, "questions", btn.dataset.id));
-        }
-      });
-    });
+    lastQuestionsDocs = snap.docs;
+    renderQuestionsTable(lastQuestionsDocs);
   });
 }
 
