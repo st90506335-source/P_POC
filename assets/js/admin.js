@@ -217,6 +217,13 @@ function watchQuestions() {
         </td>
       `;
       els.questionsTbody.appendChild(tr);
+
+      if (configSummary) {
+        const subTr = document.createElement("tr");
+        subTr.className = "border-b";
+        subTr.innerHTML = `<td></td><td colspan="4" class="pl-6 pb-2 text-xs text-gray-400">${configSummary}</td>`;
+        els.questionsTbody.appendChild(subTr);
+      }
     });
 
     els.questionsTbody.querySelectorAll(".toggle-active").forEach((btn) => {
