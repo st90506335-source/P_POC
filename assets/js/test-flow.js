@@ -49,12 +49,10 @@ function goToStep(n) {
   [1, 2, 3].forEach((i) => {
     if (i === n) {
       show(els.steps[i]);
-      els.stepIndicators[i]?.classList.add("bg-indigo-600", "text-white");
-      els.stepIndicators[i]?.classList.remove("bg-gray-200", "text-gray-500");
+      els.stepIndicators[i]?.classList.add("active");
     } else {
       hide(els.steps[i]);
-      els.stepIndicators[i]?.classList.remove("bg-indigo-600", "text-white");
-      els.stepIndicators[i]?.classList.add("bg-gray-200", "text-gray-500");
+      els.stepIndicators[i]?.classList.remove("active");
     }
   });
 }
@@ -78,17 +76,17 @@ function renderQuestionInput(qst) {
   if (type === "SINGLE_CHOICE" || type === "YES_NO") {
     const options = type === "YES_NO" ? ["是", "否"] : (qst.options || []);
     let html = options.map((opt) => `
-      <label class="flex items-center gap-2 mb-2 cursor-pointer">
-        <input type="radio" name="q_${qst.id}" value="${opt}" class="w-4 h-4">
-        <span>${opt}</span>
+      <label class="flex items-center gap-3 mb-2.5 cursor-pointer">
+        <input type="radio" name="q_${qst.id}" value="${opt}" class="custom-radio">
+        <span style="color: var(--text-heading)">${opt}</span>
       </label>
     `).join("");
     if (type === "SINGLE_CHOICE" && qst.allowOther) {
       html += `
-        <label class="flex items-center gap-2 mb-2 cursor-pointer">
-          <input type="radio" name="q_${qst.id}" class="w-4 h-4 other-radio">
-          <span class="whitespace-nowrap">其他：</span>
-          <input type="text" class="other-input flex-1 border-b border-gray-300 focus:outline-none focus:border-indigo-500 px-1 py-0.5 text-sm" placeholder="請輸入">
+        <label class="flex items-center gap-3 mb-2.5 cursor-pointer">
+          <input type="radio" name="q_${qst.id}" class="custom-radio other-radio">
+          <span class="whitespace-nowrap" style="color: var(--text-heading)">其他：</span>
+          <input type="text" class="other-input flex-1 px-1 py-0.5 text-sm" placeholder="請輸入">
         </label>
       `;
     }
@@ -97,17 +95,17 @@ function renderQuestionInput(qst) {
 
   if (type === "MULTIPLE_CHOICE") {
     let html = (qst.options || []).map((opt) => `
-      <label class="flex items-center gap-2 mb-2 cursor-pointer">
-        <input type="checkbox" value="${opt}" class="w-4 h-4">
-        <span>${opt}</span>
+      <label class="flex items-center gap-3 mb-2.5 cursor-pointer">
+        <input type="checkbox" value="${opt}" class="custom-checkbox">
+        <span style="color: var(--text-heading)">${opt}</span>
       </label>
     `).join("");
     if (qst.allowOther) {
       html += `
-        <label class="flex items-center gap-2 mb-2 cursor-pointer">
-          <input type="checkbox" class="w-4 h-4 other-checkbox">
-          <span class="whitespace-nowrap">其他：</span>
-          <input type="text" class="other-input flex-1 border-b border-gray-300 focus:outline-none focus:border-indigo-500 px-1 py-0.5 text-sm" placeholder="請輸入">
+        <label class="flex items-center gap-3 mb-2.5 cursor-pointer">
+          <input type="checkbox" class="custom-checkbox other-checkbox">
+          <span class="whitespace-nowrap" style="color: var(--text-heading)">其他：</span>
+          <input type="text" class="other-input flex-1 px-1 py-0.5 text-sm" placeholder="請輸入">
         </label>
       `;
     }
@@ -134,7 +132,7 @@ function renderQuestionInput(qst) {
   }
 
   return `<textarea rows="4"
-    class="text-input w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+    class="text-input custom-input w-full rounded-xl p-3 text-sm"
     placeholder="請輸入您的回饋..."></textarea>`;
 }
 
@@ -155,7 +153,7 @@ async function loadQuestions() {
     wrap.dataset.qid = qst.id;
     wrap.dataset.qtype = type;
     wrap.innerHTML = `
-      <label class="block font-medium text-gray-800 mb-2">${idx + 1}. ${qst.questionText}</label>
+      <label class="block font-semibold mb-2.5" style="color: var(--text-heading)">${idx + 1}. ${qst.questionText}</label>
       ${renderQuestionInput(qst)}
     `;
     els.questionsContainer.appendChild(wrap);
@@ -318,7 +316,7 @@ async function init(user) {
     const status = submissionSnap.data().reviewStatus;
     const html = {
       PENDING: "您已送出測試回饋，目前狀態：待審核",
-      APPROVED: '您的測試回饋已審核通過！<br><a href="./redeem.html" class="text-indigo-600 hover:underline font-medium mt-2 inline-block">前往禮券兌換頁面 →</a>',
+      APPROVED: '您的測試回饋已審核通過！<br><a href="./redeem.html" class="hover:underline font-semibold mt-2 inline-block" style="color: var(--primary)">前往禮券兌換頁面 →</a>',
       REJECTED: "您的測試回饋審核未通過"
     }[status] || "您已送出測試回饋";
     blockWith(html);

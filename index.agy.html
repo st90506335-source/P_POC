@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="warm">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P_POC 開放式測試招募平台</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Existing Project Stylesheet for Status Badges & Basic Overrides -->
+  <link rel="stylesheet" href="./assets/css/style.css">
+
+  <style>
+    /* ========================================================
+       Theme Variables System (偏明亮、質感、溫馨的多風格配置)
+       ======================================================== */
+    :root, [data-theme="warm"] {
+      --bg-canvas: #faf8f5;
+      --bg-gradient: radial-gradient(at 10% 10%, #fff7ed 0%, transparent 60%),
+                         radial-gradient(at 90% 20%, #fef3c7 0%, transparent 55%),
+                         radial-gradient(at 50% 95%, #ffedd5 0%, transparent 50%),
+                         #faf8f5;
+      --primary: #ea580c;
+      --primary-gradient: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      --primary-hover: linear-gradient(135deg, #fb923c 0%, #c2410c 100%);
+      --primary-glow: rgba(234, 88, 12, 0.28);
+      --primary-border: rgba(249, 115, 22, 0.3);
+      --accent-soft: #ffedd5;
+      --accent-text: #9a3412;
+      --card-bg: rgba(255, 255, 255, 0.88);
+      --card-border: rgba(234, 88, 12, 0.12);
+      --card-shadow: 0 20px 40px -15px rgba(154, 52, 18, 0.08), 0 0 1px 1px rgba(251, 146, 60, 0.1);
+      --card-hover-shadow: 0 25px 50px -12px rgba(154, 52, 18, 0.15);
+      --nav-bg: rgba(255, 255, 255, 0.82);
+      --nav-border: rgba(251, 146, 60, 0.15);
+      --text-heading: #292524;
+      --text-muted: #78716c;
+      --feature-card-bg: rgba(255, 255, 255, 0.7);
+      --input-border: #fed7aa;
+      --input-focus: #f97316;
+      --orb-1: #fed7aa;
+      --orb-2: #fde68a;
+      --orb-3: #fecdd3;
+      --theme-indicator: #ea580c;
+    }
+
+    [data-theme="minimal"] {
+      --bg-canvas: #f8fafc;
+      --bg-gradient: radial-gradient(at 15% 15%, #e0e7ff 0%, transparent 50%),
+                         radial-gradient(at 85% 25%, #e2e8f0 0%, transparent 50%),
+                         radial-gradient(at 50% 90%, #f1f5f9 0%, transparent 50%),
+                         #f8fafc;
+      --primary: #4f46e5;
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+      --primary-hover: linear-gradient(135deg, #818cf8 0%, #3730a3 100%);
+      --primary-glow: rgba(79, 70, 229, 0.28);
+      --primary-border: rgba(99, 102, 241, 0.3);
+      --accent-soft: #e0e7ff;
+      --accent-text: #3730a3;
+      --card-bg: rgba(255, 255, 255, 0.92);
+      --card-border: rgba(99, 102, 241, 0.12);
+      --card-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 1px 1px rgba(99, 102, 241, 0.08);
+      --card-hover-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.15);
+      --nav-bg: rgba(255, 255, 255, 0.85);
+      --nav-border: rgba(226, 232, 240, 0.8);
+      --text-heading: #0f172a;
+      --text-muted: #64748b;
+      --feature-card-bg: rgba(255, 255, 255, 0.75);
+      --input-border: #cbd5e1;
+      --input-focus: #4f46e5;
+      --orb-1: #c7d2fe;
+      --orb-2: #bae6fd;
+      --orb-3: #e0e7ff;
+      --theme-indicator: #4f46e5;
+    }
+
+    [data-theme="sage"] {
+      --bg-canvas: #f6f9f7;
+      --bg-gradient: radial-gradient(at 10% 15%, #d1fae5 0%, transparent 55%),
+                         radial-gradient(at 90% 20%, #ecfdf5 0%, transparent 50%),
+                         radial-gradient(at 50% 90%, #e6f4ea 0%, transparent 50%),
+                         #f6f9f7;
+      --primary: #059669;
+      --primary-gradient: linear-gradient(135deg, #10b981 0%, #047857 100%);
+      --primary-hover: linear-gradient(135deg, #34d399 0%, #065f46 100%);
+      --primary-glow: rgba(5, 150, 105, 0.28);
+      --primary-border: rgba(16, 185, 129, 0.3);
+      --accent-soft: #d1fae5;
+      --accent-text: #065f46;
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --card-border: rgba(16, 185, 129, 0.14);
+      --card-shadow: 0 20px 40px -15px rgba(6, 78, 59, 0.08), 0 0 1px 1px rgba(16, 185, 129, 0.08);
+      --card-hover-shadow: 0 25px 50px -12px rgba(6, 78, 59, 0.15);
+      --nav-bg: rgba(255, 255, 255, 0.85);
+      --nav-border: rgba(167, 243, 208, 0.35);
+      --text-heading: #132a1f;
+      --text-muted: #52796f;
+      --feature-card-bg: rgba(255, 255, 255, 0.72);
+      --input-border: #a7f3d0;
+      --input-focus: #059669;
+      --orb-1: #a7f3d0;
+      --orb-2: #bbf7d0;
+      --orb-3: #fef08a;
+      --theme-indicator: #059669;
+    }
+
+    [data-theme="sakura"] {
+      --bg-canvas: #fff8f9;
+      --bg-gradient: radial-gradient(at 15% 15%, #ffe4e6 0%, transparent 55%),
+                         radial-gradient(at 85% 25%, #fce7f3 0%, transparent 50%),
+                         radial-gradient(at 50% 90%, #fff1f2 0%, transparent 50%),
+                         #fff8f9;
+      --primary: #e11d48;
+      --primary-gradient: linear-gradient(135deg, #fb7185 0%, #be123c 100%);
+      --primary-hover: linear-gradient(135deg, #fda4af 0%, #9f1239 100%);
+      --primary-glow: rgba(225, 29, 72, 0.28);
+      --primary-border: rgba(244, 63, 94, 0.3);
+      --accent-soft: #ffe4e6;
+      --accent-text: #9f1239;
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --card-border: rgba(244, 63, 94, 0.14);
+      --card-shadow: 0 20px 40px -15px rgba(159, 18, 57, 0.08), 0 0 1px 1px rgba(244, 63, 94, 0.08);
+      --card-hover-shadow: 0 25px 50px -12px rgba(159, 18, 57, 0.15);
+      --nav-bg: rgba(255, 255, 255, 0.85);
+      --nav-border: rgba(254, 205, 211, 0.4);
+      --text-heading: #2b1118;
+      --text-muted: #885c69;
+      --feature-card-bg: rgba(255, 255, 255, 0.75);
+      --input-border: #fecdd3;
+      --input-focus: #e11d48;
+      --orb-1: #fecdd3;
+      --orb-2: #fed7aa;
+      --orb-3: #f5d0fe;
+      --theme-indicator: #e11d48;
+    }
+
+    /* ========================================================
+       Global Typography & Transitions
+       ======================================================== */
+    body {
+      font-family: 'Plus Jakarta Sans', 'Noto Sans TC', system-ui, -apple-system, sans-serif;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-heading);
+      transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                  color 0.4s ease;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Ambient animated mesh orbs */
+    .ambient-mesh {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .ambient-orb {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(85px);
+      opacity: 0.6;
+      transition: background 0.8s ease;
+      animation-duration: 20s;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+    }
+
+    .orb-1 {
+      width: 480px;
+      height: 480px;
+      background: var(--orb-1);
+      top: -120px;
+      left: -80px;
+      animation-name: floatOrb1;
+    }
+
+    .orb-2 {
+      width: 520px;
+      height: 520px;
+      background: var(--orb-2);
+      top: 15%;
+      right: -140px;
+      animation-name: floatOrb2;
+      animation-duration: 24s;
+    }
+
+    .orb-3 {
+      width: 420px;
+      height: 420px;
+      background: var(--orb-3);
+      bottom: -80px;
+      left: 20%;
+      animation-name: floatOrb3;
+      animation-duration: 22s;
+    }
+
+    @keyframes floatOrb1 {
+      0%, 100% { transform: translate(0px, 0px) scale(1); }
+      50% { transform: translate(60px, 80px) scale(1.1); }
+    }
+
+    @keyframes floatOrb2 {
+      0%, 100% { transform: translate(0px, 0px) scale(1); }
+      50% { transform: translate(-80px, 60px) scale(0.95); }
+    }
+
+    @keyframes floatOrb3 {
+      0%, 100% { transform: translate(0px, 0px) scale(1); }
+      50% { transform: translate(50px, -70px) scale(1.08); }
+    }
+
+    /* Glassmorphic Components */
+    .glass-nav {
+      background: var(--nav-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--nav-border);
+      transition: all 0.4s ease;
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--card-border);
+      box-shadow: var(--card-shadow);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .glass-card:hover {
+      box-shadow: var(--card-hover-shadow);
+    }
+
+    /* Dynamic Button Gradient & Ripple Sweep */
+    .theme-btn-primary {
+      background: var(--primary-gradient);
+      box-shadow: 0 10px 25px -6px var(--primary-glow);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .theme-btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 16px 30px -8px var(--primary-glow);
+    }
+
+    .theme-btn-primary:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    /* Button Shimmer Sweep Effect */
+    .theme-btn-primary::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -60%;
+      width: 40%;
+      height: 200%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+      transform: rotate(25deg);
+      animation: buttonSweep 4s ease-in-out infinite;
+    }
+
+    @keyframes buttonSweep {
+      0% { left: -60%; }
+      30%, 100% { left: 140%; }
+    }
+
+    /* Header Pill Badge Shimmer */
+    .badge-shimmer {
+      background: var(--accent-soft);
+      color: var(--accent-text);
+      border: 1px solid var(--primary-border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .badge-shimmer::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+      animation: badgeSweep 3.5s infinite;
+    }
+
+    @keyframes badgeSweep {
+      0% { left: -100%; }
+      35%, 100% { left: 160%; }
+    }
+
+    /* Stagger Entrance Animations */
+    .animate-in-up {
+      opacity: 0;
+      transform: translateY(22px);
+      animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+    .delay-400 { animation-delay: 0.4s; }
+    .delay-500 { animation-delay: 0.5s; }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Status Badge Enhanced */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.4rem 1.1rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      letter-spacing: 0.025em;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      animation: pulseGlow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.05); }
+      100% { box-shadow: 0 0 16px 2px var(--primary-glow); }
+    }
+
+    /* Custom Input Focus Glow */
+    .custom-input {
+      border: 1.5px solid var(--input-border);
+      background: rgba(255, 255, 255, 0.95);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .custom-input:focus {
+      outline: none;
+      border-color: var(--input-focus);
+      box-shadow: 0 0 0 4px var(--primary-glow);
+      background: #ffffff;
+    }
+
+    /* Custom styled Checkbox */
+    .custom-checkbox {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 1.25rem;
+      height: 1.25rem;
+      border: 2px solid var(--input-border);
+      border-radius: 0.375rem;
+      outline: none;
+      cursor: pointer;
+      display: grid;
+      place-content: center;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      background: white;
+    }
+
+    .custom-checkbox:hover {
+      border-color: var(--input-focus);
+    }
+
+    .custom-checkbox:checked {
+      background: var(--primary-gradient);
+      border-color: transparent;
+      box-shadow: 0 2px 8px var(--primary-glow);
+    }
+
+    .custom-checkbox::before {
+      content: "";
+      width: 0.65em;
+      height: 0.65em;
+      clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+      transform: scale(0);
+      transform-origin: bottom left;
+      transition: 120ms transform ease-in-out;
+      box-shadow: inset 1em 1em white;
+      background-color: white;
+    }
+
+    .custom-checkbox:checked::before {
+      transform: scale(1);
+    }
+
+    /* Theme Switcher Button Active Pill */
+    .theme-pill-btn {
+      position: relative;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .theme-pill-btn.active {
+      background: #ffffff;
+      color: var(--text-heading);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      font-weight: 700;
+    }
+
+    /* Smooth Spinner Enhancement */
+    .spinner {
+      border: 3px solid rgba(0, 0, 0, 0.08);
+      border-top-color: var(--primary);
+      border-radius: 9999px;
+      width: 2.5rem;
+      height: 2.5rem;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Floating Mesh Orbs -->
+  <div class="ambient-mesh">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+  </div>
+
+  <!-- Glassmorphic Sticky Navigation Bar -->
+  <nav class="glass-nav sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Brand Logo & Title -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-sm" style="background: var(--primary-gradient);">
+          P
+        </div>
+        <div>
+          <span class="text-xs font-semibold tracking-wider uppercase block" style="color: var(--text-muted)">Testing Portal</span>
+          <h1 class="text-base font-bold tracking-tight" style="color: var(--text-heading)">
+            P_POC 開放式測試招募
+          </h1>
+        </div>
+      </div>
+
+      <!-- Right Controls: Theme Switcher & User Status -->
+      <div class="flex items-center gap-3">
+        
+        <!-- Interactive Theme Switcher -->
+        <div class="flex items-center p-1 rounded-full bg-black/5 backdrop-blur border border-black/5 text-xs text-gray-600 shadow-inner">
+          <button type="button" data-theme-target="warm" class="theme-pill-btn active px-3 py-1.5 rounded-full flex items-center gap-1.5 transition" title="晨曦暖蜜風格">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block shadow-sm"></span>
+            <span class="hidden sm:inline">暖陽</span>
+          </button>
+          <button type="button" data-theme-target="minimal" class="theme-pill-btn px-3 py-1.5 rounded-full flex items-center gap-1.5 transition" title="極簡純粹風格">
+            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block shadow-sm"></span>
+            <span class="hidden sm:inline">質簡</span>
+          </button>
+          <button type="button" data-theme-target="sage" class="theme-pill-btn px-3 py-1.5 rounded-full flex items-center gap-1.5 transition" title="晨露森系風格">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block shadow-sm"></span>
+            <span class="hidden sm:inline">森系</span>
+          </button>
+          <button type="button" data-theme-target="sakura" class="theme-pill-btn px-3 py-1.5 rounded-full flex items-center gap-1.5 transition" title="春櫻霞光風格">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block shadow-sm"></span>
+            <span class="hidden sm:inline">柔櫻</span>
+          </button>
+        </div>
+
+        <!-- User Info Bar (Controlled by page0.js) -->
+        <div id="userBar" class="hidden flex items-center gap-3 pl-2 border-l border-gray-200">
+          <img id="userAvatar" class="w-8 h-8 rounded-full ring-2 ring-white shadow-sm object-cover" src="" alt="使用者頭像">
+          <span id="userName" class="text-sm font-semibold max-w-[120px] truncate" style="color: var(--text-heading)"></span>
+          <button id="logoutBtn" class="text-xs font-medium px-2.5 py-1 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition">
+            登出
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-16">
+
+    <!-- Loading State (Controlled by page0.js) -->
+    <div id="loading" class="flex flex-col items-center justify-center py-24 animate-in-up">
+      <div class="spinner mb-4"></div>
+      <p class="text-sm font-medium tracking-wide text-gray-500 animate-pulse">正在載入招募資訊，請稍候...</p>
+    </div>
+
+    <!-- Hero Header Section -->
+    <header class="text-center mb-10 animate-in-up delay-100">
+      
+      <!-- Shimmer Announcement Badge -->
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide mb-5 badge-shimmer shadow-sm">
+        <span class="animate-bounce">✨</span>
+        <span>2026 最新版本 · 受測先鋒募集</span>
+      </div>
+
+      <!-- App Name & Feature Intro (populated dynamically by page0.js / Firestore config) -->
+      <h2 id="appName" class="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4 leading-tight" style="color: var(--text-heading)">
+        受測 App 開放式測試招募
+      </h2>
+      <p id="featureIntro" class="text-base sm:text-lg leading-relaxed max-w-xl mx-auto font-normal" style="color: var(--text-muted)">
+        我們正在招募對新功能有興趣的受測者，協助我們完善產品體驗。填寫下方意願登記表，我們將從中挑選核心受測名單並主動通知。
+      </p>
+
+    </header>
+
+    <!-- Key Recruitment Benefits (3 亮點卡片) -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-10 animate-in-up delay-200">
+      
+      <!-- Card 1 -->
+      <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col items-start gap-2.5 transition transform hover:-translate-y-1">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-sm" style="background: var(--accent-soft); color: var(--accent-text)">
+          ⚡
+        </div>
+        <h4 class="font-bold text-sm" style="color: var(--text-heading)">搶先解鎖體驗</h4>
+        <p class="text-xs leading-relaxed" style="color: var(--text-muted)">搶先試用次世代功能，您的真實回饋將直接塑造未來的核心體驗。</p>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col items-start gap-2.5 transition transform hover:-translate-y-1">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-sm" style="background: var(--accent-soft); color: var(--accent-text)">
+          🎁
+        </div>
+        <h4 class="font-bold text-sm" style="color: var(--text-heading)">專屬回饋禮券</h4>
+        <p class="text-xs leading-relaxed" style="color: var(--text-muted)">入選並完成回饋問卷審核後，即可在兌換頁領取電子超商禮券感謝禮。</p>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col items-start gap-2.5 transition transform hover:-translate-y-1">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-sm" style="background: var(--accent-soft); color: var(--accent-text)">
+          🔒
+        </div>
+        <h4 class="font-bold text-sm" style="color: var(--text-heading)">嚴密隱私保障</h4>
+        <p class="text-xs leading-relaxed" style="color: var(--text-muted)">恪守個人隱私資訊保護標準，登記資料僅作本階段測試通訊使用。</p>
+      </div>
+
+    </div>
+
+    <!-- Login Section (Controlled by page0.js) -->
+    <section id="loginSection" class="hidden glass-card rounded-3xl p-8 sm:p-12 text-center animate-in-up delay-300">
+      
+      <div class="w-16 h-16 mx-auto mb-5 rounded-2xl flex items-center justify-center shadow-md" style="background: var(--accent-soft)">
+        <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-text)">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+          <polyline points="10 17 15 12 10 7"/>
+          <line x1="15" y1="12" x2="3" y2="12"/>
+        </svg>
+      </div>
+
+      <h3 class="text-xl font-bold mb-2" style="color: var(--text-heading)">登入以填寫登記表</h3>
+      <p class="text-sm mb-7 max-w-sm mx-auto" style="color: var(--text-muted)">
+        請使用 Google 帳號登入驗證身份，快速同步個人電子信箱與基本資訊。
+      </p>
+
+      <button id="loginBtn" class="inline-flex items-center gap-3 bg-white border border-gray-200/80 shadow-md hover:shadow-lg px-7 py-3.5 rounded-2xl font-semibold text-gray-700 hover:bg-gray-50/80 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
+        <svg class="w-5 h-5" viewBox="0 0 48 48">
+          <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35 24 35c-6.1 0-11-4.9-11-11s4.9-11 11-11c2.8 0 5.3 1 7.3 2.7l6-6C33.5 6.5 29 4.5 24 4.5 12.7 4.5 3.5 13.7 3.5 25S12.7 45.5 24 45.5S44.5 36.3 44.5 25c0-1.5-.2-3-.5-4.5z"/>
+          <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c2.8 0 5.3 1 7.3 2.7l6-6C33.5 6.5 29 4.5 24 4.5c-7.7 0-14.3 4.4-17.7 10.2z"/>
+          <path fill="#4CAF50" d="M24 45.5c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 36.7 26.7 37.5 24 37.5c-5.3 0-9.7-3.4-11.3-8.1l-6.5 5C9.6 40.9 16.2 45.5 24 45.5z"/>
+          <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.6l6.2 5.2C40.9 36 44.5 31 44.5 25c0-1.5-.2-3-.9-4.5z"/>
+        </svg>
+        <span>使用 Google 帳號快速登入</span>
+      </button>
+
+    </section>
+
+    <!-- Form Section (Controlled by page0.js) -->
+    <section id="formSection" class="hidden glass-card rounded-3xl p-7 sm:p-9 animate-in-up delay-300">
+      
+      <div class="flex items-center justify-between pb-5 mb-6 border-b border-gray-100">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider block" style="color: var(--primary)">Registration</span>
+          <h3 class="font-extrabold text-xl tracking-tight" style="color: var(--text-heading)">填寫受測意願登記表</h3>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-semibold" style="background: var(--accent-soft); color: var(--accent-text)">
+          約需 30 秒
+        </span>
+      </div>
+
+      <form id="applyForm" class="space-y-6">
+        
+        <!-- Phone Input Field -->
+        <div>
+          <label for="phone" class="block text-sm font-semibold mb-2" style="color: var(--text-heading)">
+            聯絡手機號碼 <span class="text-rose-500">*</span>
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+              </svg>
+            </span>
+            <input id="phone" type="tel" placeholder="09xxxxxxxx"
+              class="custom-input w-full pl-11 pr-4 py-3 rounded-xl text-sm font-medium focus:outline-none"
+              autocomplete="tel">
+          </div>
+          <p class="mt-1.5 text-xs" style="color: var(--text-muted)">僅供獲選發送測試安裝連結或通知簡訊使用。</p>
+        </div>
+
+        <!-- Agreement Checkbox -->
+        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-black/[0.02] border border-black/5">
+          <input id="willingToTest" type="checkbox" class="custom-checkbox mt-0.5">
+          <label for="willingToTest" class="text-sm leading-relaxed cursor-pointer select-none font-medium" style="color: var(--text-heading)">
+            我願意參與本次開放式測試，並理解受測名單將經由內部篩選後擇期主動通知。
+          </label>
+        </div>
+
+        <!-- Error Message -->
+        <div id="formError" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-600 flex items-center gap-2">
+          <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          <span id="formErrorText">請確認填寫內容</span>
+        </div>
+
+        <!-- Submit Button -->
+        <button id="submitBtn" type="submit"
+          class="theme-btn-primary w-full text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-base tracking-wide">
+          <span>送出登記</span>
+          <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+          </svg>
+        </button>
+
+      </form>
+    </section>
+
+    <!-- Status Section (Controlled by page0.js) -->
+    <section id="statusSection" class="hidden glass-card rounded-3xl p-8 sm:p-10 text-center animate-in-up delay-300">
+      
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center text-2xl shadow-sm" style="background: var(--accent-soft)">
+        📋
+      </div>
+
+      <p class="text-xs font-bold uppercase tracking-wider mb-2" style="color: var(--text-muted)">當前登記狀態</p>
+      
+      <div class="my-3">
+        <span id="statusBadge" class="status-badge"></span>
+      </div>
+
+      <p id="statusMessage" class="text-base font-medium mt-4 max-w-md mx-auto leading-relaxed" style="color: var(--text-heading)"></p>
+
+      <div class="pt-6 mt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <a href="./test.html" class="theme-btn-primary inline-flex items-center gap-2 text-white text-sm font-bold px-6 py-2.5 rounded-xl shadow-sm">
+          <span>前往測試流程頁面</span>
+          <span>→</span>
+        </a>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="relative z-10 text-center text-xs py-8 border-t border-black/5" style="color: var(--text-muted)">
+    <p class="font-medium">P_POC Proof of Concept · 開放式測試招募平台</p>
+    <p class="mt-1 opacity-75">為提供更優質的使用者體驗持續進化</p>
+  </footer>
+
+  <!-- Theme Switcher & Interaction Polish Script -->
+  <script>
+    (function () {
+      const STORAGE_KEY = 'p_poc_theme';
+      const root = document.documentElement;
+      const themeBtns = document.querySelectorAll('[data-theme-target]');
+
+      // Load saved theme or default to 'warm'
+      const savedTheme = localStorage.getItem(STORAGE_KEY) || 'warm';
+      applyTheme(savedTheme);
+
+      themeBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const targetTheme = btn.getAttribute('data-theme-target');
+          applyTheme(targetTheme);
+        });
+      });
+
+      function applyTheme(theme) {
+        root.setAttribute('data-theme', theme);
+        localStorage.setItem(STORAGE_KEY, theme);
+
+        themeBtns.forEach((btn) => {
+          if (btn.getAttribute('data-theme-target') === theme) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+      }
+
+      // Enhanced Form Error Observer for #formError:
+      // page0.js sets text directly via els.formError.textContent = ...
+      // We ensure it displays cleanly
+      const formErrorEl = document.getElementById('formError');
+      if (formErrorEl) {
+        const observer = new MutationObserver(() => {
+          if (formErrorEl.textContent.trim()) {
+            formErrorEl.style.display = formErrorEl.classList.contains('hidden') ? 'none' : 'flex';
+          }
+        });
+        observer.observe(formErrorEl, { childList: true, characterData: true, subtree: true });
+      }
+    })();
+  </script>
+
+  <!-- Core Business Logic (100% Compatible) -->
+  <script type="module" src="./assets/js/page0.js?v=20260907a"></script>
+</body>
+</html>

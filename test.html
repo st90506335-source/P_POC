@@ -1,92 +1,394 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-theme="warm">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>測試回饋 - P_POC</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="./assets/css/style.css">
-</head>
-<body class="bg-gray-50 min-h-screen">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>測試回饋 - P_POC</title>
 
-  <nav class="bg-white border-b">
-    <div class="max-w-3xl mx-auto px-4 py-4">
-      <h1 class="text-lg font-bold text-indigo-700">P_POC 測試回饋流程</h1>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Existing Project Stylesheet for Status Badges & Basic Overrides -->
+  <link rel="stylesheet" href="./assets/css/style.css">
+
+  <style>
+    /* ========================================================
+       Theme Variables System — 與 index.agy.html 共用同一套風格語言
+       ======================================================== */
+    :root, [data-theme="warm"] {
+      --bg-canvas: #faf8f5;
+      --bg-gradient: radial-gradient(at 10% 10%, #fff7ed 0%, transparent 60%),
+                         radial-gradient(at 90% 20%, #fef3c7 0%, transparent 55%),
+                         radial-gradient(at 50% 95%, #ffedd5 0%, transparent 50%),
+                         #faf8f5;
+      --primary: #ea580c;
+      --primary-gradient: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      --primary-hover: linear-gradient(135deg, #fb923c 0%, #c2410c 100%);
+      --primary-glow: rgba(234, 88, 12, 0.28);
+      --primary-border: rgba(249, 115, 22, 0.3);
+      --accent-soft: #ffedd5;
+      --accent-text: #9a3412;
+      --card-bg: rgba(255, 255, 255, 0.88);
+      --card-border: rgba(234, 88, 12, 0.12);
+      --card-shadow: 0 20px 40px -15px rgba(154, 52, 18, 0.08), 0 0 1px 1px rgba(251, 146, 60, 0.1);
+      --card-hover-shadow: 0 25px 50px -12px rgba(154, 52, 18, 0.15);
+      --nav-bg: rgba(255, 255, 255, 0.82);
+      --nav-border: rgba(251, 146, 60, 0.15);
+      --text-heading: #292524;
+      --text-muted: #78716c;
+      --feature-card-bg: rgba(255, 255, 255, 0.7);
+      --input-border: #fed7aa;
+      --input-focus: #f97316;
+      --orb-1: #fed7aa;
+      --orb-2: #fde68a;
+      --orb-3: #fecdd3;
+      --theme-indicator: #ea580c;
+    }
+
+    [data-theme="minimal"] {
+      --bg-canvas: #f8fafc;
+      --bg-gradient: radial-gradient(at 15% 15%, #e0e7ff 0%, transparent 50%),
+                         radial-gradient(at 85% 25%, #e2e8f0 0%, transparent 50%),
+                         radial-gradient(at 50% 90%, #f1f5f9 0%, transparent 50%),
+                         #f8fafc;
+      --primary: #4f46e5;
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+      --primary-hover: linear-gradient(135deg, #818cf8 0%, #3730a3 100%);
+      --primary-glow: rgba(79, 70, 229, 0.28);
+      --primary-border: rgba(99, 102, 241, 0.3);
+      --accent-soft: #e0e7ff;
+      --accent-text: #3730a3;
+      --card-bg: rgba(255, 255, 255, 0.92);
+      --card-border: rgba(99, 102, 241, 0.12);
+      --card-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 1px 1px rgba(99, 102, 241, 0.08);
+      --card-hover-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.15);
+      --nav-bg: rgba(255, 255, 255, 0.85);
+      --nav-border: rgba(226, 232, 240, 0.8);
+      --text-heading: #0f172a;
+      --text-muted: #64748b;
+      --feature-card-bg: rgba(255, 255, 255, 0.75);
+      --input-border: #cbd5e1;
+      --input-focus: #4f46e5;
+      --orb-1: #c7d2fe;
+      --orb-2: #bae6fd;
+      --orb-3: #e0e7ff;
+      --theme-indicator: #4f46e5;
+    }
+
+    [data-theme="sage"] {
+      --bg-canvas: #f6f9f7;
+      --bg-gradient: radial-gradient(at 10% 15%, #d1fae5 0%, transparent 55%),
+                         radial-gradient(at 90% 20%, #ecfdf5 0%, transparent 50%),
+                         radial-gradient(at 50% 90%, #e6f4ea 0%, transparent 50%),
+                         #f6f9f7;
+      --primary: #059669;
+      --primary-gradient: linear-gradient(135deg, #10b981 0%, #047857 100%);
+      --primary-hover: linear-gradient(135deg, #34d399 0%, #065f46 100%);
+      --primary-glow: rgba(5, 150, 105, 0.28);
+      --primary-border: rgba(16, 185, 129, 0.3);
+      --accent-soft: #d1fae5;
+      --accent-text: #065f46;
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --card-border: rgba(16, 185, 129, 0.14);
+      --card-shadow: 0 20px 40px -15px rgba(6, 78, 59, 0.08), 0 0 1px 1px rgba(16, 185, 129, 0.08);
+      --card-hover-shadow: 0 25px 50px -12px rgba(6, 78, 59, 0.15);
+      --nav-bg: rgba(255, 255, 255, 0.85);
+      --nav-border: rgba(167, 243, 208, 0.35);
+      --text-heading: #132a1f;
+      --text-muted: #52796f;
+      --feature-card-bg: rgba(255, 255, 255, 0.72);
+      --input-border: #a7f3d0;
+      --input-focus: #059669;
+      --orb-1: #a7f3d0;
+      --orb-2: #bbf7d0;
+      --orb-3: #fef08a;
+      --theme-indicator: #059669;
+    }
+
+    [data-theme="sakura"] {
+      --bg-canvas: #fff8f9;
+      --bg-gradient: radial-gradient(at 15% 15%, #ffe4e6 0%, transparent 55%),
+                         radial-gradient(at 85% 25%, #fce7f3 0%, transparent 50%),
+                         radial-gradient(at 50% 90%, #fff1f2 0%, transparent 50%),
+                         #fff8f9;
+      --primary: #e11d48;
+      --primary-gradient: linear-gradient(135deg, #fb7185 0%, #be123c 100%);
+      --primary-hover: linear-gradient(135deg, #fda4af 0%, #9f1239 100%);
+      --primary-glow: rgba(225, 29, 72, 0.28);
+      --primary-border: rgba(244, 63, 94, 0.3);
+      --accent-soft: #ffe4e6;
+      --accent-text: #9f1239;
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --card-border: rgba(244, 63, 94, 0.14);
+      --card-shadow: 0 20px 40px -15px rgba(159, 18, 57, 0.08), 0 0 1px 1px rgba(244, 63, 94, 0.08);
+      --card-hover-shadow: 0 25px 50px -12px rgba(159, 18, 57, 0.15);
+      --nav-bg: rgba(255, 255, 255, 0.85);
+      --nav-border: rgba(254, 205, 211, 0.4);
+      --text-heading: #2b1118;
+      --text-muted: #885c69;
+      --feature-card-bg: rgba(255, 255, 255, 0.75);
+      --input-border: #fecdd3;
+      --input-focus: #e11d48;
+      --orb-1: #fecdd3;
+      --orb-2: #fed7aa;
+      --orb-3: #f5d0fe;
+      --theme-indicator: #e11d48;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', 'Noto Sans TC', system-ui, -apple-system, sans-serif;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-heading);
+      transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s ease;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .ambient-mesh { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .ambient-orb { position: absolute; border-radius: 9999px; filter: blur(85px); opacity: 0.6; transition: background 0.8s ease; animation-duration: 20s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
+    .orb-1 { width: 480px; height: 480px; background: var(--orb-1); top: -120px; left: -80px; animation-name: floatOrb1; }
+    .orb-2 { width: 520px; height: 520px; background: var(--orb-2); top: 15%; right: -140px; animation-name: floatOrb2; animation-duration: 24s; }
+    .orb-3 { width: 420px; height: 420px; background: var(--orb-3); bottom: -80px; left: 20%; animation-name: floatOrb3; animation-duration: 22s; }
+
+    @keyframes floatOrb1 { 0%, 100% { transform: translate(0px, 0px) scale(1); } 50% { transform: translate(60px, 80px) scale(1.1); } }
+    @keyframes floatOrb2 { 0%, 100% { transform: translate(0px, 0px) scale(1); } 50% { transform: translate(-80px, 60px) scale(0.95); } }
+    @keyframes floatOrb3 { 0%, 100% { transform: translate(0px, 0px) scale(1); } 50% { transform: translate(50px, -70px) scale(1.08); } }
+
+    .glass-nav { background: var(--nav-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--nav-border); transition: all 0.4s ease; }
+    .glass-card { background: var(--card-bg); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid var(--card-border); box-shadow: var(--card-shadow); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    .glass-card:hover { box-shadow: var(--card-hover-shadow); }
+
+    .theme-btn-primary { background: var(--primary-gradient); box-shadow: 0 10px 25px -6px var(--primary-glow); position: relative; overflow: hidden; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    .theme-btn-primary:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 16px 30px -8px var(--primary-glow); }
+    .theme-btn-primary:active { transform: translateY(0) scale(0.98); }
+    .theme-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .theme-btn-primary::after { content: ''; position: absolute; top: -50%; left: -60%; width: 40%; height: 200%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent); transform: rotate(25deg); animation: buttonSweep 4s ease-in-out infinite; }
+    @keyframes buttonSweep { 0% { left: -60%; } 30%, 100% { left: 140%; } }
+
+    .badge-shimmer { background: var(--accent-soft); color: var(--accent-text); border: 1px solid var(--primary-border); position: relative; overflow: hidden; }
+    .badge-shimmer::after { content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent); animation: badgeSweep 3.5s infinite; }
+    @keyframes badgeSweep { 0% { left: -100%; } 35%, 100% { left: 160%; } }
+
+    .animate-in-up { opacity: 0; transform: translateY(22px); animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .delay-100 { animation-delay: 0.1s; } .delay-200 { animation-delay: 0.2s; } .delay-300 { animation-delay: 0.3s; }
+    @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+
+    .status-badge { display: inline-flex; align-items: center; padding: 0.4rem 1.1rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 700; letter-spacing: 0.025em; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+
+    .custom-input { border: 1.5px solid var(--input-border); background: rgba(255, 255, 255, 0.95); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    .custom-input:focus { outline: none; border-color: var(--input-focus); box-shadow: 0 0 0 4px var(--primary-glow); background: #ffffff; }
+
+    .custom-checkbox {
+      appearance: none; -webkit-appearance: none;
+      width: 1.25rem; height: 1.25rem;
+      border: 2px solid var(--input-border); border-radius: 0.375rem;
+      outline: none; cursor: pointer; display: grid; place-content: center;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); background: white; flex-shrink: 0;
+    }
+    .custom-checkbox:hover { border-color: var(--input-focus); }
+    .custom-checkbox:checked { background: var(--primary-gradient); border-color: transparent; box-shadow: 0 2px 8px var(--primary-glow); }
+    .custom-checkbox::before {
+      content: ""; width: 0.65em; height: 0.65em;
+      clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+      transform: scale(0); transform-origin: bottom left; transition: 120ms transform ease-in-out;
+      box-shadow: inset 1em 1em white; background-color: white;
+    }
+    .custom-checkbox:checked::before { transform: scale(1); }
+
+    /* 圓形版本，供單選題使用（原設計系統只有方形 checkbox，這裡補上對應的 radio 樣式） */
+    .custom-radio {
+      appearance: none; -webkit-appearance: none;
+      width: 1.25rem; height: 1.25rem;
+      border: 2px solid var(--input-border); border-radius: 9999px;
+      outline: none; cursor: pointer; display: grid; place-content: center;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); background: white; flex-shrink: 0;
+    }
+    .custom-radio:hover { border-color: var(--input-focus); }
+    .custom-radio:checked { border-color: var(--input-focus); box-shadow: 0 2px 8px var(--primary-glow); }
+    .custom-radio::before {
+      content: ""; width: 0.6em; height: 0.6em; border-radius: 9999px;
+      transform: scale(0); transition: 120ms transform ease-in-out;
+      background: var(--primary-gradient);
+    }
+    .custom-radio:checked::before { transform: scale(1); }
+
+    .other-input { background: transparent; border: none; border-bottom: 1.5px solid var(--input-border); transition: border-color 0.2s ease; }
+    .other-input:focus { outline: none; border-color: var(--input-focus); }
+
+    .slider-input { accent-color: var(--primary); }
+
+    .step-dot {
+      width: 2.25rem; height: 2.25rem; border-radius: 9999px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.875rem; font-weight: 700;
+      background: var(--accent-soft); color: var(--text-muted);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .step-dot.active { background: var(--primary-gradient); color: white; box-shadow: 0 6px 16px -4px var(--primary-glow); }
+    .step-line { width: 2.5rem; height: 2px; background: var(--card-border); }
+
+    .spinner { border: 3px solid rgba(0, 0, 0, 0.08); border-top-color: var(--primary); border-radius: 9999px; width: 2.5rem; height: 2.5rem; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .theme-pill-btn { position: relative; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+    .theme-pill-btn.active { background: #ffffff; color: var(--text-heading); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08); font-weight: 700; }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-mesh">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+  </div>
+
+  <nav class="glass-nav sticky top-0 z-50">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-sm" style="background: var(--primary-gradient);">P</div>
+        <div>
+          <span class="text-xs font-semibold tracking-wider uppercase block" style="color: var(--text-muted)">Testing Flow</span>
+          <h1 class="text-base font-bold tracking-tight" style="color: var(--text-heading)">P_POC 測試回饋流程</h1>
+        </div>
+      </div>
+      <div class="flex items-center p-1 rounded-full bg-black/5 backdrop-blur border border-black/5 text-xs text-gray-600 shadow-inner">
+        <button type="button" data-theme-target="warm" class="theme-pill-btn active px-3 py-1.5 rounded-full flex items-center gap-1.5 transition"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span><span class="hidden sm:inline">暖陽</span></button>
+        <button type="button" data-theme-target="minimal" class="theme-pill-btn px-3 py-1.5 rounded-full flex items-center gap-1.5 transition"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span><span class="hidden sm:inline">質簡</span></button>
+        <button type="button" data-theme-target="sage" class="theme-pill-btn px-3 py-1.5 rounded-full flex items-center gap-1.5 transition"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span><span class="hidden sm:inline">森系</span></button>
+        <button type="button" data-theme-target="sakura" class="theme-pill-btn px-3 py-1.5 rounded-full flex items-center gap-1.5 transition"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span><span class="hidden sm:inline">柔櫻</span></button>
+      </div>
     </div>
   </nav>
 
-  <main class="max-w-3xl mx-auto px-4 py-10">
+  <main class="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-16">
 
-    <div id="loading" class="flex justify-center py-20">
-      <div class="spinner"></div>
+    <div id="loading" class="flex flex-col items-center justify-center py-24 animate-in-up">
+      <div class="spinner mb-4"></div>
+      <p class="text-sm font-medium tracking-wide animate-pulse" style="color: var(--text-muted)">載入中，請稍候...</p>
     </div>
 
-    <section id="loginSection" class="hidden text-center">
-      <p class="text-gray-600 mb-4">請先登入以繼續測試流程</p>
-      <button id="loginBtn" class="inline-flex items-center gap-2 bg-white border border-gray-300 shadow-sm px-6 py-3 rounded-lg hover:bg-gray-50">
-        使用 Google 帳號登入
+    <section id="loginSection" class="hidden glass-card rounded-3xl p-8 sm:p-12 text-center animate-in-up">
+      <div class="w-16 h-16 mx-auto mb-5 rounded-2xl flex items-center justify-center shadow-md" style="background: var(--accent-soft)">
+        <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-text)">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+        </svg>
+      </div>
+      <h3 class="text-xl font-bold mb-2" style="color: var(--text-heading)">請先登入以繼續測試流程</h3>
+      <p class="text-sm mb-7" style="color: var(--text-muted)">使用受邀請時的 Google 帳號登入即可繼續。</p>
+      <button id="loginBtn" class="inline-flex items-center gap-3 bg-white border border-gray-200/80 shadow-md hover:shadow-lg px-7 py-3.5 rounded-2xl font-semibold text-gray-700 hover:bg-gray-50/80 transition-all transform hover:-translate-y-0.5">
+        <svg class="w-5 h-5" viewBox="0 0 48 48">
+          <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35 24 35c-6.1 0-11-4.9-11-11s4.9-11 11-11c2.8 0 5.3 1 7.3 2.7l6-6C33.5 6.5 29 4.5 24 4.5 12.7 4.5 3.5 13.7 3.5 25S12.7 45.5 24 45.5S44.5 36.3 44.5 25c0-1.5-.2-3-.5-4.5z"/>
+          <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c2.8 0 5.3 1 7.3 2.7l6-6C33.5 6.5 29 4.5 24 4.5c-7.7 0-14.3 4.4-17.7 10.2z"/>
+          <path fill="#4CAF50" d="M24 45.5c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 36.7 26.7 37.5 24 37.5c-5.3 0-9.7-3.4-11.3-8.1l-6.5 5C9.6 40.9 16.2 45.5 24 45.5z"/>
+          <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.6l6.2 5.2C40.9 36 44.5 31 44.5 25c0-1.5-.2-3-.9-4.5z"/>
+        </svg>
+        <span>使用 Google 帳號快速登入</span>
       </button>
     </section>
 
-    <section id="blockedSection" class="hidden bg-white rounded-xl shadow-sm border p-8 text-center">
-      <p id="blockedMessage" class="text-gray-700"></p>
-      <a href="./index.html" class="inline-block mt-4 text-indigo-600 hover:underline text-sm">回首頁</a>
+    <section id="blockedSection" class="hidden glass-card rounded-3xl p-8 sm:p-10 text-center animate-in-up">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center text-2xl shadow-sm" style="background: var(--accent-soft)">📋</div>
+      <p id="blockedMessage" class="text-base font-medium leading-relaxed" style="color: var(--text-heading)"></p>
+      <a href="./index.html" class="inline-block mt-6 text-sm font-semibold" style="color: var(--primary)">回首頁</a>
     </section>
 
     <section id="wizard" class="hidden">
 
-      <div class="flex items-center justify-center gap-3 mb-8">
-        <span id="indicator1" class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-indigo-600 text-white">1</span>
-        <div class="w-10 h-0.5 bg-gray-200"></div>
-        <span id="indicator2" class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-gray-200 text-gray-500">2</span>
-        <div class="w-10 h-0.5 bg-gray-200"></div>
-        <span id="indicator3" class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-gray-200 text-gray-500">3</span>
+      <div class="flex items-center justify-center gap-3 mb-8 animate-in-up">
+        <span id="indicator1" class="step-dot">1</span>
+        <div class="step-line"></div>
+        <span id="indicator2" class="step-dot">2</span>
+        <div class="step-line"></div>
+        <span id="indicator3" class="step-dot">3</span>
       </div>
 
-      <div id="step1" class="bg-white rounded-xl shadow-sm border p-6">
-        <h3 class="font-semibold text-lg mb-3">Step 1 · App 說明與操作手冊</h3>
-        <p class="text-gray-600 mb-5">請先下載並閱讀操作手冊，熟悉受測 App 的使用方式後再繼續。</p>
+      <div id="step1" class="glass-card rounded-3xl p-7 sm:p-9 animate-in-up">
+        <div class="flex items-center justify-between pb-5 mb-6 border-b" style="border-color: var(--card-border)">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider block" style="color: var(--primary)">Step 1</span>
+            <h3 class="font-extrabold text-xl tracking-tight" style="color: var(--text-heading)">App 說明與操作手冊</h3>
+          </div>
+        </div>
+        <p class="mb-6 text-sm leading-relaxed" style="color: var(--text-muted)">請先下載並閱讀操作手冊，熟悉受測 App 的使用方式後再繼續。</p>
         <a id="manualLink" href="./assets/app-manual.pdf" target="_blank"
-          class="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg hover:bg-indigo-100 mb-6">
-          下載操作手冊 (PDF)
+          class="badge-shimmer inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm mb-8 shadow-sm">
+          📄 下載操作手冊 (PDF)
         </a>
         <div class="flex justify-end">
-          <button id="toStep2Btn" class="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700">下一步</button>
+          <button id="toStep2Btn" class="theme-btn-primary text-white font-bold px-6 py-3 rounded-xl text-sm">下一步 →</button>
         </div>
       </div>
 
-      <div id="step2" class="hidden bg-white rounded-xl shadow-sm border p-6">
-        <h3 class="font-semibold text-lg mb-4">Step 2 · 測試回饋問卷</h3>
+      <div id="step2" class="hidden glass-card rounded-3xl p-7 sm:p-9 animate-in-up">
+        <div class="flex items-center justify-between pb-5 mb-6 border-b" style="border-color: var(--card-border)">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider block" style="color: var(--primary)">Step 2</span>
+            <h3 class="font-extrabold text-xl tracking-tight" style="color: var(--text-heading)">測試回饋問卷</h3>
+          </div>
+        </div>
         <div id="questionsContainer"></div>
-        <div class="flex justify-between">
-          <button id="backToStep1Btn" class="text-gray-500 px-5 py-2 rounded-lg hover:bg-gray-100">上一步</button>
-          <button id="toStep3Btn" class="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700">下一步</button>
+        <div class="flex justify-between pt-2">
+          <button id="backToStep1Btn" class="font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-black/5 transition" style="color: var(--text-muted)">← 上一步</button>
+          <button id="toStep3Btn" class="theme-btn-primary text-white font-bold px-6 py-3 rounded-xl text-sm">下一步 →</button>
         </div>
       </div>
 
-      <div id="step3" class="hidden bg-white rounded-xl shadow-sm border p-6">
-        <h3 class="font-semibold text-lg mb-4">Step 3 · 確認個人資訊並送出</h3>
-        <div class="bg-gray-50 rounded-lg p-4 mb-6 text-sm space-y-1">
-          <p><span class="text-gray-500">姓名：</span><span id="confirmName" class="font-medium"></span></p>
-          <p><span class="text-gray-500">Email：</span><span id="confirmEmail" class="font-medium"></span></p>
+      <div id="step3" class="hidden glass-card rounded-3xl p-7 sm:p-9 animate-in-up">
+        <div class="flex items-center justify-between pb-5 mb-6 border-b" style="border-color: var(--card-border)">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider block" style="color: var(--primary)">Step 3</span>
+            <h3 class="font-extrabold text-xl tracking-tight" style="color: var(--text-heading)">確認個人資訊並送出</h3>
+          </div>
         </div>
-        <p id="submitError" class="hidden text-sm text-red-600 mb-4"></p>
-        <div class="flex justify-between">
-          <button id="backToStep2Btn" class="text-gray-500 px-5 py-2 rounded-lg hover:bg-gray-100">上一步</button>
-          <button id="submitBtn" class="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700">確認送出</button>
+        <div class="rounded-xl p-4 mb-6 text-sm space-y-1.5" style="background: var(--accent-soft)">
+          <p><span style="color: var(--text-muted)">姓名：</span><span id="confirmName" class="font-semibold" style="color: var(--text-heading)"></span></p>
+          <p><span style="color: var(--text-muted)">Email：</span><span id="confirmEmail" class="font-semibold" style="color: var(--text-heading)"></span></p>
+        </div>
+        <div id="submitError" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-600 mb-4"></div>
+        <div class="flex justify-between pt-2">
+          <button id="backToStep2Btn" class="font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-black/5 transition" style="color: var(--text-muted)">← 上一步</button>
+          <button id="submitBtn" class="theme-btn-primary text-white font-bold px-6 py-3 rounded-xl text-sm">確認送出</button>
         </div>
       </div>
 
     </section>
 
-    <section id="doneSection" class="hidden bg-white rounded-xl shadow-sm border p-8 text-center">
-      <p class="text-lg font-semibold text-gray-800 mb-2">感謝您的回饋！</p>
-      <p class="text-gray-600">您的測試回饋已送出，待後台審核通過後即可至禮券兌換頁面領取獎勵。</p>
-      <a href="./index.html" class="inline-block mt-4 text-indigo-600 hover:underline text-sm">回首頁</a>
+    <section id="doneSection" class="hidden glass-card rounded-3xl p-8 sm:p-10 text-center animate-in-up">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center text-2xl shadow-sm" style="background: var(--accent-soft)">🎉</div>
+      <p class="text-xl font-bold mb-2" style="color: var(--text-heading)">感謝您的回饋！</p>
+      <p class="text-sm leading-relaxed" style="color: var(--text-muted)">您的測試回饋已送出，待後台審核通過後即可至禮券兌換頁面領取獎勵。</p>
+      <a href="./index.html" class="inline-block mt-6 text-sm font-semibold" style="color: var(--primary)">回首頁</a>
     </section>
 
   </main>
 
-  <script type="module" src="./assets/js/test-flow.js?v=20260907a"></script>
+  <footer class="relative z-10 text-center text-xs py-8 border-t border-black/5" style="color: var(--text-muted)">
+    <p class="font-medium">P_POC Proof of Concept · 開放式測試招募平台</p>
+  </footer>
+
+  <script>
+    (function () {
+      const STORAGE_KEY = 'p_poc_theme';
+      const root = document.documentElement;
+      const themeBtns = document.querySelectorAll('[data-theme-target]');
+      applyTheme(localStorage.getItem(STORAGE_KEY) || 'warm');
+      themeBtns.forEach((btn) => {
+        btn.addEventListener('click', () => applyTheme(btn.getAttribute('data-theme-target')));
+      });
+      function applyTheme(theme) {
+        root.setAttribute('data-theme', theme);
+        localStorage.setItem(STORAGE_KEY, theme);
+        themeBtns.forEach((btn) => btn.classList.toggle('active', btn.getAttribute('data-theme-target') === theme));
+      }
+    })();
+  </script>
+
+  <script type="module" src="./assets/js/test-flow.js?v=20260909a"></script>
 </body>
 </html>
