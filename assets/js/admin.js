@@ -365,7 +365,18 @@ function renderQuestionsTable(docs) {
         update.sliderStep = null;
       }
 
-      await updateDoc(doc(db, "questions", id), update);
+      // 若改後的順序與其他題目衝突，將該順序（含）之後的其他題目依序往後遞補
+      // （排除自己，因為自己的最終順序已經在 update 裡明確指定）
+      const shiftQuery = query(collection(db, "questions"), where("sortOrder", ">=", order));
+      const shiftSnap = await getDocs(shiftQuery);
+      const batch = writeBatch(db);
+      shiftSnap.forEach((d) => {
+        if (d.id === id) return;
+        batch.update(d.ref, { sortOrder: d.data().sortOrder + 1 });
+      });
+      batch.update(doc(db, "questions", id), update);
+      await batch.commit();
+
       editingQuestionIds.delete(id);
       renderQuestionsTable(lastQuestionsDocs);
     });
