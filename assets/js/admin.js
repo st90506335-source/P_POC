@@ -242,6 +242,24 @@ function renderQuestionEditRow(id, qst) {
   `;
 }
 
+// 重新排序：與相鄰題目交換位置，並將整份題庫依目前顯示順序重新編為連續整數，
+// 徹底解決重複/跳號問題（不是只交換數值，是依畫面順序整批重新編號）
+async function moveQuestion(id, offset) {
+  const docs = lastQuestionsDocs;
+  const index = docs.findIndex((d) => d.id === id);
+  const targetIndex = index + offset;
+  if (index === -1 || targetIndex < 0 || targetIndex >= docs.length) return;
+
+  const reordered = docs.slice();
+  [reordered[index], reordered[targetIndex]] = [reordered[targetIndex], reordered[index]];
+
+  const batch = writeBatch(db);
+  reordered.forEach((d, i) => {
+    batch.update(d.ref, { sortOrder: i + 1 });
+  });
+  await batch.commit();
+}
+
 function renderQuestionsTable(docs) {
   els.questionsTbody.innerHTML = "";
   docs.forEach((d) => {
@@ -258,7 +276,13 @@ function renderQuestionsTable(docs) {
     const tr = document.createElement("tr");
     tr.className = "border-b";
     tr.innerHTML = `
-      <td class="p-2">${qst.sortOrder ?? 0}</td>
+      <td class="p-2">
+        <div class="flex items-center gap-1">
+          <span>${qst.sortOrder ?? 0}</span>
+          <button data-id="${d.id}" class="move-up text-gray-400 hover:text-indigo-600 leading-none" title="往前移">▲</button>
+          <button data-id="${d.id}" class="move-down text-gray-400 hover:text-indigo-600 leading-none" title="往後移">▼</button>
+        </div>
+      </td>
       <td class="p-2">${qst.questionText}</td>
       <td class="p-2 text-gray-500">${configSummary
         ? `<span title="${escapeAttr(configSummary)}" class="border-b border-dotted border-gray-400 cursor-help">${typeLabel}</span>`
@@ -283,6 +307,9 @@ function renderQuestionsTable(docs) {
     }
   });
 
+  els.questionsTbody.querySelectorAll(".move-up, .move-down").forEach((btn) => {
+    btn.addEventListener("click", () => moveQuestion(btn.dataset.id, btn.classList.contains("move-up") ? -1 : 1));
+  });
   els.questionsTbody.querySelectorAll(".toggle-active").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const isActive = btn.dataset.active === "true";
@@ -365,17 +392,11 @@ function renderQuestionsTable(docs) {
         update.sliderStep = null;
       }
 
-      // 若改後的順序與其他題目衝突，將該順序（含）之後的其他題目依序往後遞補
-      // （排除自己，因為自己的最終順序已經在 update 裡明確指定）
-      const shiftQuery = query(collection(db, "questions"), where("sortOrder", ">=", order));
-      const shiftSnap = await getDocs(shiftQuery);
-      const batch = writeBatch(db);
-      shiftSnap.forEach((d) => {
-        if (d.id === id) return;
-        batch.update(d.ref, { sortOrder: d.data().sortOrder + 1 });
-      });
-      batch.update(doc(db, "questions", id), update);
-      await batch.commit();
+      // 順序異動一律透過「▲▼ 重新排序」按鈕處理（見 moveQuestion），
+      // 這裡直接寫入使用者輸入的值即可，不做自動遞補——
+      // 先前在此處也套用遞補邏輯是誤用：會導致每次修改儲存都把後面所有題目
+      // 順序集體 +1，越改越亂。
+      await updateDoc(doc(db, "questions", id), update);
 
       editingQuestionIds.delete(id);
       renderQuestionsTable(lastQuestionsDocs);
