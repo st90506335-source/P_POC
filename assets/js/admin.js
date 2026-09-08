@@ -68,6 +68,11 @@ const els = {
   choiceOptionsField: $("choiceOptionsField"),
   ratingConfigField: $("ratingConfigField"),
   sliderConfigField: $("sliderConfigField"),
+  newQuestionRequiredMode: $("newQuestionRequiredMode"),
+  newConditionalField: $("newConditionalField"),
+  newQuestionCondQuestion: $("newQuestionCondQuestion"),
+  newQuestionCondOperator: $("newQuestionCondOperator"),
+  newQuestionCondValue: $("newQuestionCondValue"),
   addQuestionBtn: $("addQuestionBtn"),
 
   // 回饋審核
@@ -190,6 +195,32 @@ function updateQuestionConfigFields() {
 els.newQuestionType?.addEventListener("change", updateQuestionConfigFields);
 updateQuestionConfigFields();
 
+els.newQuestionRequiredMode?.addEventListener("change", () => {
+  els.newConditionalField.classList.toggle("hidden", els.newQuestionRequiredMode.value !== "CONDITIONAL");
+});
+
+const REQUIRED_MODE_LABEL = { ALWAYS: "必填", OPTIONAL: "選填", CONDITIONAL: "條件式" };
+
+function conditionSummary(qst) {
+  if (qst.requiredMode !== "CONDITIONAL" || !qst.condition) return "";
+  const trigger = lastQuestionsDocs.find((d) => d.id === qst.condition.questionId);
+  const opLabel = { eq: "等於", gt: "大於", lt: "小於" }[qst.condition.operator] || qst.condition.operator;
+  const triggerText = trigger ? trigger.data().questionText : "(題目已刪除)";
+  return `條件：「${triggerText}」${opLabel}「${qst.condition.value}」`;
+}
+
+// 依目前題庫清單重建「觸發題目」下拉選單（排除 excludeId，例如編輯中的題目自己）
+function buildConditionOptions(selectEl, excludeId, selectedId) {
+  if (!selectEl) return;
+  selectEl.innerHTML = lastQuestionsDocs
+    .filter((d) => d.id !== excludeId)
+    .map((d) => {
+      const text = d.data().questionText || "(未命名題目)";
+      return `<option value="${d.id}" ${d.id === selectedId ? "selected" : ""}>${escapeAttr(text)}</option>`;
+    })
+    .join("");
+}
+
 const editingQuestionIds = new Set();
 let lastQuestionsDocs = [];
 
@@ -232,6 +263,31 @@ function renderQuestionEditRow(id, qst) {
             <label class="text-xs text-gray-500">間距 <input type="number" class="edit-slider-step w-16 border border-gray-300 rounded-lg p-1 text-sm ml-1" value="${qst.sliderStep ?? 1}"></label>
           </div>
 
+          <div class="flex items-center gap-2">
+            <label class="text-xs text-gray-500">必填設定</label>
+            <select class="edit-required-mode border border-gray-300 rounded-lg p-2 text-sm">
+              <option value="ALWAYS" ${(qst.requiredMode || "ALWAYS") === "ALWAYS" ? "selected" : ""}>一律必填</option>
+              <option value="OPTIONAL" ${qst.requiredMode === "OPTIONAL" ? "selected" : ""}>一律非必填</option>
+              <option value="CONDITIONAL" ${qst.requiredMode === "CONDITIONAL" ? "selected" : ""}>條件式（不符合則隱藏）</option>
+            </select>
+          </div>
+          <div class="edit-conditional-field ${qst.requiredMode === "CONDITIONAL" ? "" : "hidden"} flex items-center gap-2 flex-wrap p-3 rounded-lg bg-gray-50">
+            <label class="text-xs text-gray-500">觸發題目</label>
+            <select class="edit-cond-question border border-gray-300 rounded-lg p-2 text-sm max-w-[200px]">
+              ${lastQuestionsDocs.filter((d) => d.id !== id).map((d) => {
+                const qText = d.data().questionText || "(未命名題目)";
+                const selected = qst.condition?.questionId === d.id ? "selected" : "";
+                return `<option value="${d.id}" ${selected}>${escapeAttr(qText)}</option>`;
+              }).join("")}
+            </select>
+            <select class="edit-cond-operator border border-gray-300 rounded-lg p-2 text-sm">
+              <option value="eq" ${(qst.condition?.operator || "eq") === "eq" ? "selected" : ""}>等於</option>
+              <option value="gt" ${qst.condition?.operator === "gt" ? "selected" : ""}>大於</option>
+              <option value="lt" ${qst.condition?.operator === "lt" ? "selected" : ""}>小於</option>
+            </select>
+            <input type="text" class="edit-cond-value border border-gray-300 rounded-lg p-2 text-sm w-32" placeholder="比對值（例如：是）" value="${escapeAttr(qst.condition?.value ?? "")}">
+          </div>
+
           <div class="flex gap-2 pt-1">
             <button data-id="${id}" class="save-question bg-indigo-600 text-white px-3 py-1.5 rounded text-sm hover:bg-indigo-700">儲存</button>
             <button data-id="${id}" class="cancel-edit-question bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-sm hover:bg-gray-300">取消</button>
@@ -272,7 +328,11 @@ function renderQuestionsTable(docs) {
     }
 
     const configSummary = questionConfigSummary(qst, type);
+    const condSummary = conditionSummary(qst);
     const typeLabel = `${QUESTION_TYPE_LABEL[type] || type}${qst.allowOther ? " ＋其他" : ""}`;
+    const requiredMode = qst.requiredMode || "ALWAYS";
+    const requiredBadgeClass = { ALWAYS: "bg-red-50 text-red-600", OPTIONAL: "bg-gray-100 text-gray-500", CONDITIONAL: "bg-amber-50 text-amber-600" }[requiredMode];
+    const subLines = [configSummary, condSummary].filter(Boolean).join("　|　");
     const tr = document.createElement("tr");
     tr.className = "border-b";
     tr.innerHTML = `
@@ -284,9 +344,12 @@ function renderQuestionsTable(docs) {
         </div>
       </td>
       <td class="p-2">${qst.questionText}</td>
-      <td class="p-2 text-gray-500">${configSummary
-        ? `<span title="${escapeAttr(configSummary)}" class="border-b border-dotted border-gray-400 cursor-help">${typeLabel}</span>`
-        : typeLabel}</td>
+      <td class="p-2 text-gray-500">
+        ${configSummary
+          ? `<span title="${escapeAttr(configSummary)}" class="border-b border-dotted border-gray-400 cursor-help">${typeLabel}</span>`
+          : typeLabel}
+        <span class="ml-1 px-1.5 py-0.5 rounded text-xs ${requiredBadgeClass}">${REQUIRED_MODE_LABEL[requiredMode]}</span>
+      </td>
       <td class="p-2">
         <button data-id="${d.id}" data-active="${qst.isActive}" class="toggle-active px-2 py-1 rounded text-xs ${qst.isActive ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-600"}">
           ${qst.isActive ? "啟用中" : "已停用"}
@@ -299,10 +362,10 @@ function renderQuestionsTable(docs) {
     `;
     els.questionsTbody.appendChild(tr);
 
-    if (configSummary) {
+    if (subLines) {
       const subTr = document.createElement("tr");
       subTr.className = "border-b";
-      subTr.innerHTML = `<td></td><td colspan="4" class="pl-6 pb-2 text-xs text-gray-400">${configSummary}</td>`;
+      subTr.innerHTML = `<td></td><td colspan="4" class="pl-6 pb-2 text-xs text-gray-400">${subLines}</td>`;
       els.questionsTbody.appendChild(subTr);
     }
   });
@@ -344,6 +407,12 @@ function renderQuestionsTable(docs) {
       row.querySelector(".edit-slider-field")?.classList.toggle("hidden", type !== "SLIDER");
     });
   });
+  els.questionsTbody.querySelectorAll('[data-edit-row] .edit-required-mode').forEach((select) => {
+    select.addEventListener("change", () => {
+      const row = select.closest("[data-edit-row]");
+      row.querySelector(".edit-conditional-field")?.classList.toggle("hidden", select.value !== "CONDITIONAL");
+    });
+  });
   els.questionsTbody.querySelectorAll(".save-question").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const row = btn.closest("[data-edit-row]");
@@ -356,7 +425,27 @@ function renderQuestionsTable(docs) {
         return;
       }
 
-      const update = { questionText: text, type, sortOrder: order };
+      const requiredMode = row.querySelector(".edit-required-mode").value;
+      let condition = null;
+      if (requiredMode === "CONDITIONAL") {
+        const condQuestionId = row.querySelector(".edit-cond-question").value;
+        const condValue = row.querySelector(".edit-cond-value").value.trim();
+        if (!condQuestionId) {
+          alert("請選擇觸發題目");
+          return;
+        }
+        if (!condValue) {
+          alert("請輸入比對值");
+          return;
+        }
+        condition = {
+          questionId: condQuestionId,
+          operator: row.querySelector(".edit-cond-operator").value,
+          value: condValue
+        };
+      }
+
+      const update = { questionText: text, type, sortOrder: order, requiredMode, condition };
       if (type === "SINGLE_CHOICE" || type === "MULTIPLE_CHOICE") {
         const options = row.querySelector(".edit-options").value.split("\n").map((s) => s.trim()).filter(Boolean);
         if (options.length < 2) {
@@ -409,6 +498,7 @@ function watchQuestions() {
   onSnapshot(q, (snap) => {
     lastQuestionsDocs = snap.docs;
     renderQuestionsTable(lastQuestionsDocs);
+    buildConditionOptions(els.newQuestionCondQuestion, null, els.newQuestionCondQuestion?.value);
   });
 }
 
@@ -418,11 +508,29 @@ els.addQuestionBtn?.addEventListener("click", async () => {
   const order = Number(els.newQuestionOrder.value) || 0;
   if (!text) return;
 
+  const requiredMode = els.newQuestionRequiredMode.value;
+  if (requiredMode === "CONDITIONAL") {
+    if (!els.newQuestionCondQuestion.value) {
+      alert("請選擇觸發題目");
+      return;
+    }
+    if (!els.newQuestionCondValue.value.trim()) {
+      alert("請輸入比對值");
+      return;
+    }
+  }
+
   const questionDoc = {
     questionText: text,
     type,
     sortOrder: order,
     isActive: true,
+    requiredMode,
+    condition: requiredMode === "CONDITIONAL" ? {
+      questionId: els.newQuestionCondQuestion.value,
+      operator: els.newQuestionCondOperator.value,
+      value: els.newQuestionCondValue.value.trim()
+    } : null,
     createdAt: serverTimestamp()
   };
 
@@ -459,6 +567,9 @@ els.addQuestionBtn?.addEventListener("click", async () => {
   els.newQuestionOrder.value = "";
   els.newQuestionOptions.value = "";
   els.newQuestionAllowOther.checked = false;
+  els.newQuestionRequiredMode.value = "ALWAYS";
+  els.newQuestionCondValue.value = "";
+  hide(els.newConditionalField);
 });
 
 // ---------- 3. 回饋審核與發券 ----------

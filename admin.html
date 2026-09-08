@@ -100,6 +100,25 @@
             <label class="text-xs text-gray-500">間距 <input id="newQuestionSliderStep" type="number" value="1" class="w-16 border border-gray-300 rounded-lg p-1 text-sm ml-1"></label>
           </div>
 
+          <div class="flex items-center gap-2">
+            <label class="text-xs text-gray-500">必填設定</label>
+            <select id="newQuestionRequiredMode" class="border border-gray-300 rounded-lg p-2 text-sm">
+              <option value="ALWAYS" selected>一律必填</option>
+              <option value="OPTIONAL">一律非必填</option>
+              <option value="CONDITIONAL">條件式（不符合則隱藏）</option>
+            </select>
+          </div>
+          <div id="newConditionalField" class="hidden flex items-center gap-2 flex-wrap p-3 rounded-lg bg-gray-50">
+            <label class="text-xs text-gray-500">觸發題目</label>
+            <select id="newQuestionCondQuestion" class="border border-gray-300 rounded-lg p-2 text-sm max-w-[200px]"></select>
+            <select id="newQuestionCondOperator" class="border border-gray-300 rounded-lg p-2 text-sm">
+              <option value="eq">等於</option>
+              <option value="gt">大於</option>
+              <option value="lt">小於</option>
+            </select>
+            <input id="newQuestionCondValue" placeholder="比對值（例如：是）" class="border border-gray-300 rounded-lg p-2 text-sm w-32">
+          </div>
+
           <button id="addQuestionBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700">新增</button>
         </div>
         <div class="overflow-x-auto">
@@ -170,6 +189,6 @@
 
   </main>
 
-  <script type="module" src="./assets/js/admin.js?v=20260909a"></script>
+  <script type="module" src="./assets/js/admin.js?v=20260909b"></script>
 </body>
 </html>

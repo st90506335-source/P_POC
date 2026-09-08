@@ -149,7 +149,7 @@ async function loadQuestions() {
   questionsCache.forEach((qst, idx) => {
     const type = qst.type || "TEXT";
     const wrap = document.createElement("div");
-    wrap.className = "mb-6";
+    wrap.className = qst.requiredMode === "CONDITIONAL" ? "mb-6 hidden" : "mb-6";
     wrap.dataset.qid = qst.id;
     wrap.dataset.qtype = type;
     wrap.innerHTML = `
@@ -169,13 +169,74 @@ async function loadQuestions() {
           b.classList.toggle("text-yellow-400", filled);
           b.classList.toggle("text-gray-300", !filled);
         });
+        evaluateConditions();
       });
     });
   });
 
   els.questionsContainer.querySelectorAll('[data-qtype="SLIDER"] .slider-input').forEach((input) => {
     const display = input.parentElement.querySelector(".slider-value");
-    input.addEventListener("input", () => { display.textContent = input.value; });
+    input.addEventListener("input", () => {
+      display.textContent = input.value;
+      evaluateConditions();
+    });
+  });
+
+  // 單選/多選/文字輸入的變動一律透過事件代理統一處理，重新評估條件式必填題目
+  els.questionsContainer.addEventListener("change", evaluateConditions);
+  els.questionsContainer.addEventListener("input", evaluateConditions);
+
+  evaluateConditions();
+}
+
+// 條件式必填：讀取「觸發題目」目前的原始答案值（未經過必填驗證，僅供條件比對用）
+function getCurrentAnswerRaw(wrap) {
+  const type = wrap.dataset.qtype;
+  if (type === "SINGLE_CHOICE" || type === "YES_NO") {
+    const checked = wrap.querySelector('input[type="radio"]:checked');
+    if (!checked) return null;
+    if (checked.classList.contains("other-radio")) {
+      return wrap.querySelector(".other-input")?.value.trim() || null;
+    }
+    return checked.value;
+  }
+  if (type === "MULTIPLE_CHOICE") {
+    return Array.from(wrap.querySelectorAll('input[type="checkbox"]:checked'))
+      .map((cb) => (cb.classList.contains("other-checkbox") ? (wrap.querySelector(".other-input")?.value.trim() || "") : cb.value))
+      .filter(Boolean);
+  }
+  if (type === "RATING") {
+    return Number(wrap.querySelector(".rating-stars")?.dataset.value || 0);
+  }
+  if (type === "SLIDER") {
+    return Number(wrap.querySelector(".slider-input")?.value ?? 0);
+  }
+  return wrap.querySelector("textarea")?.value.trim() || null;
+}
+
+function isConditionMet(condition, rawValue) {
+  if (rawValue === null || rawValue === undefined) return false;
+  if (Array.isArray(rawValue)) {
+    return condition.operator === "eq" ? rawValue.includes(condition.value) : false;
+  }
+  if (condition.operator === "eq") return String(rawValue) === String(condition.value);
+  const numA = Number(rawValue);
+  const numB = Number(condition.value);
+  if (Number.isNaN(numA) || Number.isNaN(numB)) return false;
+  if (condition.operator === "gt") return numA > numB;
+  if (condition.operator === "lt") return numA < numB;
+  return false;
+}
+
+// 依目前各題已填的答案，重新判斷每個「條件式」題目該顯示還是隱藏
+function evaluateConditions() {
+  questionsCache.forEach((qst) => {
+    if (qst.requiredMode !== "CONDITIONAL" || !qst.condition) return;
+    const wrap = els.questionsContainer.querySelector(`[data-qid="${qst.id}"]`);
+    if (!wrap) return;
+    const triggerWrap = els.questionsContainer.querySelector(`[data-qid="${qst.condition.questionId}"]`);
+    const rawValue = triggerWrap ? getCurrentAnswerRaw(triggerWrap) : null;
+    wrap.classList.toggle("hidden", !isConditionMet(qst.condition, rawValue));
   });
 }
 
@@ -188,6 +249,14 @@ function collectAnswers() {
     const qid = wrap.dataset.qid;
     const type = wrap.dataset.qtype;
     const qst = questionsCache.find((q) => q.id === qid);
+    const requiredMode = qst?.requiredMode || "ALWAYS";
+
+    // 條件式必填題目，條件不成立（畫面上被隱藏）時視為不適用，整題略過
+    if (requiredMode === "CONDITIONAL" && wrap.classList.contains("hidden")) {
+      return;
+    }
+    const isRequired = requiredMode !== "OPTIONAL";
+
     let answerValue = null;
     let answerText = "";
 
@@ -197,11 +266,11 @@ function collectAnswers() {
         const otherText = wrap.querySelector(".other-input")?.value.trim() || "";
         answerValue = otherText || null;
         answerText = otherText ? `其他：${otherText}` : "";
-        if (!otherText) allFilled = false;
+        if (isRequired && !otherText) allFilled = false;
       } else {
         answerValue = checked ? checked.value : null;
         answerText = answerValue || "";
-        if (!answerValue) allFilled = false;
+        if (isRequired && !answerValue) allFilled = false;
       }
     } else if (type === "MULTIPLE_CHOICE") {
       const checked = Array.from(wrap.querySelectorAll('input[type="checkbox"]:checked'));
@@ -224,12 +293,12 @@ function collectAnswers() {
       });
       answerValue = values;
       answerText = displayValues.join("、");
-      if (values.length === 0 || !otherOk) allFilled = false;
+      if (isRequired && (values.length === 0 || !otherOk)) allFilled = false;
     } else if (type === "RATING") {
       const rating = Number(wrap.querySelector(".rating-stars")?.dataset.value || 0);
       answerValue = rating;
       answerText = rating > 0 ? `${rating} / ${qst?.ratingMax || 5} 顆星` : "";
-      if (rating <= 0) allFilled = false;
+      if (isRequired && rating <= 0) allFilled = false;
     } else if (type === "SLIDER") {
       const value = Number(wrap.querySelector(".slider-input").value);
       answerValue = value;
@@ -238,7 +307,7 @@ function collectAnswers() {
       const value = wrap.querySelector("textarea").value.trim();
       answerValue = value;
       answerText = value;
-      if (!value) allFilled = false;
+      if (isRequired && !value) allFilled = false;
     }
 
     answers.push({
