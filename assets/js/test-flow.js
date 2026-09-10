@@ -75,38 +75,72 @@ function renderQuestionInput(qst) {
 
   if (type === "SINGLE_CHOICE" || type === "YES_NO") {
     const options = type === "YES_NO" ? ["是", "否"] : (qst.options || []);
-    let html = options.map((opt) => `
-      <label class="flex items-center gap-3 mb-2.5 cursor-pointer">
-        <input type="radio" name="q_${qst.id}" value="${opt}" class="custom-radio">
-        <span style="color: var(--text-heading)">${opt}</span>
-      </label>
-    `).join("");
+    let html = options.map((opt, i) => {
+      const id = `opt31-${qst.id}-${i}`;
+      return `
+      <div class="flex items-center gap-3 mb-2.5">
+        <span class="opt31-wrapper">
+          <input type="radio" id="${id}" name="q_${qst.id}" value="${opt}">
+          <svg viewBox="0 0 35.6 35.6">
+            <circle class="opt31-bg" cx="17.8" cy="17.8" r="17.8"></circle>
+            <circle class="opt31-stroke" cx="17.8" cy="17.8" r="14.37"></circle>
+            <polyline class="opt31-check" points="11.78 18.12 15.55 22.23 25.17 12.87"></polyline>
+          </svg>
+        </span>
+        <label for="${id}" class="cursor-pointer" style="color: var(--text-heading)">${opt}</label>
+      </div>
+    `;
+    }).join("");
     if (type === "SINGLE_CHOICE" && qst.allowOther) {
+      const id = `opt31-${qst.id}-other`;
       html += `
-        <label class="flex items-center gap-3 mb-2.5 cursor-pointer">
-          <input type="radio" name="q_${qst.id}" class="custom-radio other-radio">
-          <span class="whitespace-nowrap" style="color: var(--text-heading)">其他：</span>
+        <div class="flex items-center gap-3 mb-2.5">
+          <span class="opt31-wrapper">
+            <input type="radio" id="${id}" name="q_${qst.id}" class="other-radio">
+            <svg viewBox="0 0 35.6 35.6">
+              <circle class="opt31-bg" cx="17.8" cy="17.8" r="17.8"></circle>
+              <circle class="opt31-stroke" cx="17.8" cy="17.8" r="14.37"></circle>
+              <polyline class="opt31-check" points="11.78 18.12 15.55 22.23 25.17 12.87"></polyline>
+            </svg>
+          </span>
+          <label for="${id}" class="whitespace-nowrap cursor-pointer" style="color: var(--text-heading)">其他：</label>
           <input type="text" class="other-input flex-1 px-1 py-0.5 text-sm" placeholder="請輸入">
-        </label>
+        </div>
       `;
     }
     return html;
   }
 
   if (type === "MULTIPLE_CHOICE") {
-    let html = (qst.options || []).map((opt) => `
-      <label class="flex items-center gap-3 mb-2.5 cursor-pointer">
-        <input type="checkbox" value="${opt}" class="custom-checkbox">
-        <span style="color: var(--text-heading)">${opt}</span>
-      </label>
-    `).join("");
+    let html = (qst.options || []).map((opt, i) => {
+      const id = `opt12-${qst.id}-${i}`;
+      return `
+      <div class="flex items-center gap-3 mb-2.5">
+        <span class="opt12-wrapper">
+          <span class="cbx">
+            <input type="checkbox" id="${id}" value="${opt}">
+            <label for="${id}"></label>
+            <svg width="15" height="14" viewBox="0 0 15 14" fill="none"><path d="M2 8.36364L6.23077 12L13 2"></path></svg>
+          </span>
+        </span>
+        <label for="${id}" class="cursor-pointer" style="color: var(--text-heading)">${opt}</label>
+      </div>
+    `;
+    }).join("");
     if (qst.allowOther) {
+      const id = `opt12-${qst.id}-other`;
       html += `
-        <label class="flex items-center gap-3 mb-2.5 cursor-pointer">
-          <input type="checkbox" class="custom-checkbox other-checkbox">
-          <span class="whitespace-nowrap" style="color: var(--text-heading)">其他：</span>
+        <div class="flex items-center gap-3 mb-2.5">
+          <span class="opt12-wrapper">
+            <span class="cbx">
+              <input type="checkbox" id="${id}" class="other-checkbox">
+              <label for="${id}"></label>
+              <svg width="15" height="14" viewBox="0 0 15 14" fill="none"><path d="M2 8.36364L6.23077 12L13 2"></path></svg>
+            </span>
+          </span>
+          <label for="${id}" class="whitespace-nowrap cursor-pointer" style="color: var(--text-heading)">其他：</label>
           <input type="text" class="other-input flex-1 px-1 py-0.5 text-sm" placeholder="請輸入">
-        </label>
+        </div>
       `;
     }
     return html;

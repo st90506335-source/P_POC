@@ -121,6 +121,23 @@
 
           <button id="addQuestionBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700">新增</button>
         </div>
+
+        <div class="border border-gray-200 rounded-lg p-4 mb-4">
+          <button id="toggleBulkImportBtn" class="text-sm text-indigo-600 hover:underline">批次匯入（貼上 JSON）▾</button>
+          <div id="bulkImportField" class="hidden mt-3 space-y-2">
+            <p class="text-xs text-gray-500">
+              貼上題目陣列 JSON，一次建立多題。
+              <button id="fillBulkExampleBtn" type="button" class="text-indigo-600 hover:underline">填入範例</button>
+            </p>
+            <textarea id="bulkImportText" rows="10" class="w-full border border-gray-300 rounded-lg p-2 text-sm font-mono" placeholder='[
+  { "questionText": "您的性別？", "type": "SINGLE_CHOICE", "options": ["男", "女", "其他"] },
+  { "questionText": "有什麼建議？", "type": "TEXT" }
+]'></textarea>
+            <button id="bulkImportBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700">批次建立</button>
+            <p id="bulkImportMessage" class="text-sm whitespace-pre-wrap"></p>
+          </div>
+        </div>
+
         <div class="overflow-x-auto">
           <table class="w-full text-sm text-left">
             <thead class="text-gray-500 border-b">
@@ -189,6 +206,6 @@
 
   </main>
 
-  <script type="module" src="./assets/js/admin.js?v=20260909b"></script>
+  <script type="module" src="./assets/js/admin.js?v=20260910a"></script>
 </body>
 </html>

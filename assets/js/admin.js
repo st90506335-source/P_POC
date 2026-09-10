@@ -74,6 +74,12 @@ const els = {
   newQuestionCondOperator: $("newQuestionCondOperator"),
   newQuestionCondValue: $("newQuestionCondValue"),
   addQuestionBtn: $("addQuestionBtn"),
+  toggleBulkImportBtn: $("toggleBulkImportBtn"),
+  bulkImportField: $("bulkImportField"),
+  bulkImportText: $("bulkImportText"),
+  bulkImportBtn: $("bulkImportBtn"),
+  bulkImportMessage: $("bulkImportMessage"),
+  fillBulkExampleBtn: $("fillBulkExampleBtn"),
 
   // 回饋審核
   submissionsContainer: $("submissionsContainer"),
@@ -570,6 +576,142 @@ els.addQuestionBtn?.addEventListener("click", async () => {
   els.newQuestionRequiredMode.value = "ALWAYS";
   els.newQuestionCondValue.value = "";
   hide(els.newConditionalField);
+});
+
+// ---------- 2b. 題庫批次匯入（貼上 JSON） ----------
+els.toggleBulkImportBtn?.addEventListener("click", () => {
+  if (els.bulkImportField.classList.contains("hidden")) show(els.bulkImportField);
+  else hide(els.bulkImportField);
+});
+
+els.fillBulkExampleBtn?.addEventListener("click", () => {
+  els.bulkImportText.value = JSON.stringify([
+    { questionText: "您的性別？", type: "SINGLE_CHOICE", options: ["男", "女", "其他"] },
+    { questionText: "您用過哪些功能？", type: "MULTIPLE_CHOICE", options: ["登入", "搜尋", "設定"], allowOther: true },
+    { questionText: "整體滿意度？", type: "RATING", ratingMax: 5 },
+    { questionText: "願意推薦給朋友的程度（0～10）？", type: "SLIDER", sliderMin: 0, sliderMax: 10, sliderStep: 1 },
+    { questionText: "會再次使用嗎？", type: "YES_NO" },
+    { questionText: "如果選了「否」，原因是？", type: "TEXT", requiredMode: "CONDITIONAL", condition: { questionIndex: 4, operator: "eq", value: "否" } },
+    { questionText: "還有其他建議嗎？", type: "TEXT", requiredMode: "OPTIONAL" }
+  ], null, 2);
+});
+
+function validateBulkQuestion(item, index) {
+  const errors = [];
+  const label = `第 ${index + 1} 題`;
+  if (!item || typeof item !== "object") return [`${label}：格式錯誤，必須是物件`];
+  if (!item.questionText || !String(item.questionText).trim()) errors.push(`${label}：缺少 questionText`);
+
+  const type = item.type || "TEXT";
+  const validTypes = ["TEXT", "SINGLE_CHOICE", "MULTIPLE_CHOICE", "YES_NO", "RATING", "SLIDER"];
+  if (!validTypes.includes(type)) errors.push(`${label}：type「${item.type}」不合法（可用：${validTypes.join("、")}）`);
+
+  if (type === "SINGLE_CHOICE" || type === "MULTIPLE_CHOICE") {
+    if (!Array.isArray(item.options) || item.options.length < 2) {
+      errors.push(`${label}：${type === "SINGLE_CHOICE" ? "單選" : "多選"}題的 options 至少需要 2 個選項`);
+    }
+  }
+
+  const requiredMode = item.requiredMode || "ALWAYS";
+  if (!["ALWAYS", "OPTIONAL", "CONDITIONAL"].includes(requiredMode)) {
+    errors.push(`${label}：requiredMode「${item.requiredMode}」不合法`);
+  }
+  if (requiredMode === "CONDITIONAL") {
+    const c = item.condition;
+    if (!c || typeof c.questionIndex !== "number") {
+      errors.push(`${label}：CONDITIONAL 題目需要 condition.questionIndex（指向本次批次中第幾題，從 0 開始）`);
+    } else if (c.questionIndex < 0 || c.questionIndex >= index) {
+      errors.push(`${label}：condition.questionIndex 必須指向本題「之前」的題目（0 ~ ${index - 1}）`);
+    }
+    if (!c || !["eq", "gt", "lt"].includes(c.operator)) {
+      errors.push(`${label}：condition.operator 必須是 eq／gt／lt`);
+    }
+    if (!c || c.value === undefined || c.value === null || String(c.value).trim() === "") {
+      errors.push(`${label}：condition.value 不可空白`);
+    }
+  }
+
+  return errors;
+}
+
+function showBulkMessage(text, colorClass) {
+  els.bulkImportMessage.textContent = text;
+  els.bulkImportMessage.className = `text-sm whitespace-pre-wrap ${colorClass}`;
+  show(els.bulkImportMessage);
+}
+
+els.bulkImportBtn?.addEventListener("click", async () => {
+  let items;
+  try {
+    items = JSON.parse(els.bulkImportText.value);
+  } catch (err) {
+    showBulkMessage("JSON 格式錯誤：" + err.message, "text-red-600");
+    return;
+  }
+
+  if (!Array.isArray(items) || items.length === 0) {
+    showBulkMessage("請貼上一個題目陣列（[ ... ]），且至少要有 1 筆", "text-red-600");
+    return;
+  }
+
+  const allErrors = items.flatMap((item, i) => validateBulkQuestion(item, i));
+  if (allErrors.length > 0) {
+    showBulkMessage(allErrors.join("\n"), "text-red-600");
+    return;
+  }
+
+  els.bulkImportBtn.disabled = true;
+  showBulkMessage("匯入中...", "text-gray-500");
+
+  try {
+    // 找出目前最大的 sortOrder，新題目接續其後
+    const existingSnap = await getDocs(collection(db, "questions"));
+    let maxOrder = 0;
+    existingSnap.forEach((d) => {
+      const o = d.data().sortOrder || 0;
+      if (o > maxOrder) maxOrder = o;
+    });
+
+    // 先為每一題產生 Firestore 文件參考，取得 doc id 供 condition.questionIndex 互相參照
+    const refs = items.map(() => doc(collection(db, "questions")));
+
+    const batch = writeBatch(db);
+    items.forEach((item, i) => {
+      const type = item.type || "TEXT";
+      const requiredMode = item.requiredMode || "ALWAYS";
+      const data = {
+        questionText: String(item.questionText).trim(),
+        type,
+        sortOrder: maxOrder + i + 1,
+        isActive: item.isActive !== false,
+        requiredMode,
+        condition: requiredMode === "CONDITIONAL"
+          ? { questionId: refs[item.condition.questionIndex].id, operator: item.condition.operator, value: String(item.condition.value) }
+          : null,
+        createdAt: serverTimestamp()
+      };
+      if (type === "SINGLE_CHOICE" || type === "MULTIPLE_CHOICE") {
+        data.options = item.options.map((s) => String(s).trim()).filter(Boolean);
+        data.allowOther = !!item.allowOther;
+      } else if (type === "RATING") {
+        data.ratingMax = Number(item.ratingMax) || 5;
+      } else if (type === "SLIDER") {
+        data.sliderMin = Number(item.sliderMin) || 0;
+        data.sliderMax = Number(item.sliderMax) || 10;
+        data.sliderStep = Number(item.sliderStep) || 1;
+      }
+      batch.set(refs[i], data);
+    });
+
+    await batch.commit();
+    showBulkMessage(`成功建立 ${items.length} 題`, "text-green-600");
+    els.bulkImportText.value = "";
+  } catch (err) {
+    console.error(err);
+    showBulkMessage("匯入失敗：" + err.message, "text-red-600");
+  } finally {
+    els.bulkImportBtn.disabled = false;
+  }
 });
 
 // ---------- 3. 回饋審核與發券 ----------

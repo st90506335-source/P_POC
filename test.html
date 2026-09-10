@@ -184,39 +184,67 @@
     .custom-input { border: 1.5px solid var(--input-border); background: rgba(255, 255, 255, 0.95); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
     .custom-input:focus { outline: none; border-color: var(--input-focus); box-shadow: 0 0 0 4px var(--primary-glow); background: #ffffff; }
 
-    .custom-checkbox {
-      appearance: none; -webkit-appearance: none;
-      width: 1.25rem; height: 1.25rem;
-      border: 2px solid var(--input-border); border-radius: 0.375rem;
-      outline: none; cursor: pointer; display: grid; place-content: center;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); background: white; flex-shrink: 0;
+    /* ============================================================
+       單選題視覺效果 — 取自 cool_checkboxes.html #31（綠色打勾圓圈）
+       ============================================================ */
+    .opt31-wrapper { position: relative; display: inline-block; width: 24px; height: 24px; flex-shrink: 0; }
+    .opt31-wrapper svg { display: block; width: 100%; height: 100%; }
+    .opt31-wrapper .opt31-bg { fill: none; stroke: #bfbfc0; stroke-width: 2px; transition: ease all 0.3s; }
+    .opt31-wrapper .opt31-stroke {
+      fill: none; stroke: #fff; stroke-miterlimit: 10; stroke-width: 2px;
+      stroke-dashoffset: 100; stroke-dasharray: 100; transition: ease all 0.3s;
     }
-    .custom-checkbox:hover { border-color: var(--input-focus); }
-    .custom-checkbox:checked { background: var(--primary-gradient); border-color: transparent; box-shadow: 0 2px 8px var(--primary-glow); }
-    .custom-checkbox::before {
-      content: ""; width: 0.65em; height: 0.65em;
-      clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-      transform: scale(0); transform-origin: bottom left; transition: 120ms transform ease-in-out;
-      box-shadow: inset 1em 1em white; background-color: white;
+    .opt31-wrapper .opt31-check {
+      fill: none; stroke: #fff; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2px;
+      stroke-dashoffset: 22; stroke-dasharray: 22; transition: ease all 0.3s;
     }
-    .custom-checkbox:checked::before { transform: scale(1); }
+    .opt31-wrapper input {
+      position: absolute; width: 100%; height: 100%; left: 0; top: 0; margin: 0;
+      opacity: 0; appearance: none; -webkit-appearance: none; cursor: pointer;
+    }
+    .opt31-wrapper input:checked + svg .opt31-bg { fill: #866efb; stroke: #866efb; }
+    .opt31-wrapper input:checked + svg .opt31-stroke { stroke-dashoffset: 0; }
+    .opt31-wrapper input:checked + svg .opt31-check { stroke-dashoffset: 0; }
 
-    /* 圓形版本，供單選題使用（原設計系統只有方形 checkbox，這裡補上對應的 radio 樣式） */
-    .custom-radio {
-      appearance: none; -webkit-appearance: none;
-      width: 1.25rem; height: 1.25rem;
-      border: 2px solid var(--input-border); border-radius: 9999px;
-      outline: none; cursor: pointer; display: grid; place-content: center;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); background: white; flex-shrink: 0;
+    /* ============================================================
+       多選題視覺效果 — 取自 cool_checkboxes.html #12（紫色 Gooey 打勾）
+       ============================================================ */
+    .opt12-wrapper { position: relative; display: inline-flex; }
+    .opt12-wrapper * { box-sizing: border-box; }
+    .opt12-wrapper input[type="checkbox"] {
+      -webkit-appearance: none; -moz-appearance: none; appearance: none;
+      -webkit-tap-highlight-color: transparent; cursor: pointer; margin: 0;
     }
-    .custom-radio:hover { border-color: var(--input-focus); }
-    .custom-radio:checked { border-color: var(--input-focus); box-shadow: 0 2px 8px var(--primary-glow); }
-    .custom-radio::before {
-      content: ""; width: 0.6em; height: 0.6em; border-radius: 9999px;
-      transform: scale(0); transition: 120ms transform ease-in-out;
-      background: var(--primary-gradient);
+    .opt12-wrapper input[type="checkbox"]:focus { outline: 0; }
+    .opt12-wrapper .cbx { position: relative; width: 24px; height: 24px; }
+    .opt12-wrapper .cbx input {
+      position: absolute; top: 0; left: 0; width: 24px; height: 24px;
+      border: 2px solid #bfbfc0; border-radius: 50%;
     }
-    .custom-radio:checked::before { transform: scale(1); }
+    .opt12-wrapper .cbx label {
+      width: 24px; height: 24px; background: none; border-radius: 50%;
+      position: absolute; top: 0; left: 0;
+      filter: url("#goo-12"); -webkit-filter: url("#goo-12");
+      pointer-events: none;
+    }
+    .opt12-wrapper .cbx svg { position: absolute; top: 5px; left: 4px; z-index: 1; pointer-events: none; }
+    .opt12-wrapper .cbx svg path {
+      stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round;
+      stroke-dasharray: 19; stroke-dashoffset: 19;
+      transition: stroke-dashoffset 0.3s ease; transition-delay: 0.2s;
+    }
+    .opt12-wrapper .cbx input:checked + label { animation: opt12-splash 0.6s ease forwards; }
+    .opt12-wrapper .cbx input:checked + label + svg path { stroke-dashoffset: 0; }
+    @keyframes opt12-splash {
+      40% {
+        background: #866efb;
+        box-shadow: 0 -18px 0 -8px #866efb, 16px -8px 0 -8px #866efb, 16px 8px 0 -8px #866efb, 0 18px 0 -8px #866efb, -16px 8px 0 -8px #866efb, -16px -8px 0 -8px #866efb;
+      }
+      100% {
+        background: #866efb;
+        box-shadow: 0 -36px 0 -10px transparent, 32px -16px 0 -10px transparent, 32px 16px 0 -10px transparent, 0 36px 0 -10px transparent, -32px 16px 0 -10px transparent, -32px -16px 0 -10px transparent;
+      }
+    }
 
     .other-input { background: transparent; border: none; border-bottom: 1.5px solid var(--input-border); transition: border-color 0.2s ease; }
     .other-input:focus { outline: none; border-color: var(--input-focus); }
@@ -241,6 +269,17 @@
   </style>
 </head>
 <body>
+
+  <!-- 多選題 Gooey 打勾效果共用的 SVG 濾鏡（見 .opt12-wrapper 樣式） -->
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <filter id="goo-12">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"></feGaussianBlur>
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -7" result="goo-12"></feColorMatrix>
+        <feBlend in="SourceGraphic" in2="goo-12"></feBlend>
+      </filter>
+    </defs>
+  </svg>
 
   <div class="ambient-mesh">
     <div class="ambient-orb orb-1"></div>
@@ -389,6 +428,6 @@
     })();
   </script>
 
-  <script type="module" src="./assets/js/test-flow.js?v=20260909b"></script>
+  <script type="module" src="./assets/js/test-flow.js?v=20260910a"></script>
 </body>
 </html>
