@@ -80,6 +80,9 @@ const els = {
   bulkImportBtn: $("bulkImportBtn"),
   bulkImportMessage: $("bulkImportMessage"),
   fillBulkExampleBtn: $("fillBulkExampleBtn"),
+  exportQuestionsBtn: $("exportQuestionsBtn"),
+  downloadQuestionsBtn: $("downloadQuestionsBtn"),
+  clearBeforeImportCheckbox: $("clearBeforeImportCheckbox"),
 
   // 回饋審核
   submissionsContainer: $("submissionsContainer"),
@@ -596,6 +599,67 @@ els.fillBulkExampleBtn?.addEventListener("click", () => {
   ], null, 2);
 });
 
+function exportQuestionsToJson() {
+  const docs = lastQuestionsDocs || [];
+  const idToIndex = {};
+  docs.forEach((d, i) => { idToIndex[d.id] = i; });
+
+  const items = docs.map((d) => {
+    const qst = d.data();
+    const type = qst.type || "TEXT";
+    const item = { questionText: qst.questionText, type };
+
+    if (qst.isActive === false) item.isActive = false;
+    if (qst.requiredMode && qst.requiredMode !== "ALWAYS") item.requiredMode = qst.requiredMode;
+    if (qst.requiredMode === "CONDITIONAL" && qst.condition) {
+      // 匯出時把 Firestore doc id 換回「這次匯出陣列中第幾題」，方便直接貼回批次匯入使用
+      item.condition = {
+        questionIndex: idToIndex[qst.condition.questionId] ?? -1,
+        operator: qst.condition.operator,
+        value: qst.condition.value
+      };
+    }
+
+    if (type === "SINGLE_CHOICE" || type === "MULTIPLE_CHOICE") {
+      item.options = qst.options || [];
+      if (qst.allowOther) item.allowOther = true;
+    } else if (type === "RATING") {
+      item.ratingMax = qst.ratingMax || 5;
+    } else if (type === "SLIDER") {
+      item.sliderMin = qst.sliderMin ?? 0;
+      item.sliderMax = qst.sliderMax ?? 10;
+      item.sliderStep = qst.sliderStep ?? 1;
+    }
+    return item;
+  });
+
+  return JSON.stringify(items, null, 2);
+}
+
+els.exportQuestionsBtn?.addEventListener("click", () => {
+  const count = (lastQuestionsDocs || []).length;
+  if (count === 0) {
+    showBulkMessage("目前沒有任何題目可匯出", "text-red-600");
+    return;
+  }
+  els.bulkImportText.value = exportQuestionsToJson();
+  show(els.bulkImportField);
+  show(els.downloadQuestionsBtn);
+  showBulkMessage(`已匯出 ${count} 題到上方文字框，可直接複製，或點「下載成檔案」存成 JSON`, "text-green-600");
+});
+
+els.downloadQuestionsBtn?.addEventListener("click", () => {
+  const blob = new Blob([els.bulkImportText.value], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `題庫匯出_${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
 function validateBulkQuestion(item, index) {
   const errors = [];
   const label = `第 ${index + 1} 題`;
@@ -660,17 +724,37 @@ els.bulkImportBtn?.addEventListener("click", async () => {
     return;
   }
 
+  const clearFirst = !!els.clearBeforeImportCheckbox?.checked;
+  const existingSnap = await getDocs(collection(db, "questions"));
+
+  if (clearFirst && !existingSnap.empty) {
+    if (!confirm(`確定要刪除目前全部 ${existingSnap.size} 題嗎？此動作無法復原。`)) {
+      return;
+    }
+  }
+
   els.bulkImportBtn.disabled = true;
-  showBulkMessage("匯入中...", "text-gray-500");
+  showBulkMessage(clearFirst ? "清除舊題目中..." : "匯入中...", "text-gray-500");
 
   try {
-    // 找出目前最大的 sortOrder，新題目接續其後
-    const existingSnap = await getDocs(collection(db, "questions"));
     let maxOrder = 0;
-    existingSnap.forEach((d) => {
-      const o = d.data().sortOrder || 0;
-      if (o > maxOrder) maxOrder = o;
-    });
+    if (clearFirst) {
+      // Firestore 單一批次最多 500 筆操作，分批刪除避免超過上限
+      const docsToDelete = existingSnap.docs;
+      for (let i = 0; i < docsToDelete.length; i += 450) {
+        const delBatch = writeBatch(db);
+        docsToDelete.slice(i, i + 450).forEach((d) => delBatch.delete(d.ref));
+        await delBatch.commit();
+      }
+    } else {
+      // 找出目前最大的 sortOrder，新題目接續其後
+      existingSnap.forEach((d) => {
+        const o = d.data().sortOrder || 0;
+        if (o > maxOrder) maxOrder = o;
+      });
+    }
+
+    showBulkMessage("匯入中...", "text-gray-500");
 
     // 先為每一題產生 Firestore 文件參考，取得 doc id 供 condition.questionIndex 互相參照
     const refs = items.map(() => doc(collection(db, "questions")));
@@ -704,8 +788,12 @@ els.bulkImportBtn?.addEventListener("click", async () => {
     });
 
     await batch.commit();
-    showBulkMessage(`成功建立 ${items.length} 題`, "text-green-600");
+    showBulkMessage(
+      clearFirst ? `已清除舊題目，成功建立 ${items.length} 題` : `成功建立 ${items.length} 題`,
+      "text-green-600"
+    );
     els.bulkImportText.value = "";
+    if (els.clearBeforeImportCheckbox) els.clearBeforeImportCheckbox.checked = false;
   } catch (err) {
     console.error(err);
     showBulkMessage("匯入失敗：" + err.message, "text-red-600");
