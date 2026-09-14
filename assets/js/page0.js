@@ -48,7 +48,9 @@ async function loadSettings() {
     if (snap.exists()) {
       const data = snap.data();
       if (els.appName && data.appName) els.appName.textContent = data.appName;
-      if (els.featureIntro && data.featureIntro) els.featureIntro.textContent = data.featureIntro;
+      // 後台「Page 0 招募說明文案」支援 HTML 語法（僅 admin 可寫入，見 firestore.rules），
+      // 故此處用 innerHTML 渲染而非 textContent
+      if (els.featureIntro && data.featureIntro) els.featureIntro.innerHTML = data.featureIntro;
     }
   } catch (err) {
     console.warn("讀取系統設定失敗", err);
