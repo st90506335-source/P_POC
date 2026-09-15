@@ -24,6 +24,7 @@ const els = {
   userAvatar: $("userAvatar"),
   appName: $("appName"),
   featureIntro: $("featureIntro"),
+  formIntro: $("formIntro"),
   form: $("applyForm"),
   phoneInput: $("phone"),
   willingCheckbox: $("willingToTest"),
@@ -48,9 +49,10 @@ async function loadSettings() {
     if (snap.exists()) {
       const data = snap.data();
       if (els.appName && data.appName) els.appName.textContent = data.appName;
-      // 後台「Page 0 招募說明文案」支援 HTML 語法（僅 admin 可寫入，見 firestore.rules），
+      // 後台「說明文案」欄位支援 HTML 語法（僅 admin 可寫入，見 firestore.rules），
       // 故此處用 innerHTML 渲染而非 textContent
       if (els.featureIntro && data.featureIntro) els.featureIntro.innerHTML = data.featureIntro;
+      if (els.formIntro && data.formIntro) els.formIntro.innerHTML = data.formIntro;
     }
   } catch (err) {
     console.warn("讀取系統設定失敗", err);

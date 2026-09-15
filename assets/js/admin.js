@@ -100,6 +100,7 @@ const els = {
   appNameInput: $("appNameInput"),
   manualUrlInput: $("manualUrlInput"),
   featureIntroInput: $("featureIntroInput"),
+  formIntroInput: $("formIntroInput"),
   targetSampleSizeInput: $("targetSampleSizeInput"),
   settingsMessage: $("settingsMessage")
 };
@@ -948,6 +949,7 @@ async function loadSettings() {
     els.appNameInput.value = data.appName || "";
     els.manualUrlInput.value = data.manualUrl || "";
     els.featureIntroInput.value = data.featureIntro || "";
+    els.formIntroInput.value = data.formIntro || "";
     els.targetSampleSizeInput.value = data.targetSampleSize ?? 14;
   }
 }
@@ -960,6 +962,7 @@ els.settingsForm?.addEventListener("submit", async (e) => {
       appName: els.appNameInput.value.trim(),
       manualUrl: els.manualUrlInput.value.trim(),
       featureIntro: els.featureIntroInput.value.trim(),
+      formIntro: els.formIntroInput.value.trim(),
       targetSampleSize: Number(els.targetSampleSizeInput.value) || 14
     }, { merge: true });
     els.settingsMessage.textContent = "設定已儲存";
