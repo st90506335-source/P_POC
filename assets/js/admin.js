@@ -102,6 +102,10 @@ const els = {
   featureIntroInput: $("featureIntroInput"),
   formIntroInput: $("formIntroInput"),
   targetSampleSizeInput: $("targetSampleSizeInput"),
+  inviteEmailSubjectInput: $("inviteEmailSubjectInput"),
+  inviteEmailBodyInput: $("inviteEmailBodyInput"),
+  rewardEmailSubjectInput: $("rewardEmailSubjectInput"),
+  rewardEmailBodyInput: $("rewardEmailBodyInput"),
   settingsMessage: $("settingsMessage")
 };
 
@@ -951,6 +955,10 @@ async function loadSettings() {
     els.featureIntroInput.value = data.featureIntro || "";
     els.formIntroInput.value = data.formIntro || "";
     els.targetSampleSizeInput.value = data.targetSampleSize ?? 14;
+    els.inviteEmailSubjectInput.value = data.inviteEmailSubject || "";
+    els.inviteEmailBodyInput.value = data.inviteEmailBody || "";
+    els.rewardEmailSubjectInput.value = data.rewardEmailSubject || "";
+    els.rewardEmailBodyInput.value = data.rewardEmailBody || "";
   }
 }
 
@@ -963,7 +971,11 @@ els.settingsForm?.addEventListener("submit", async (e) => {
       manualUrl: els.manualUrlInput.value.trim(),
       featureIntro: els.featureIntroInput.value.trim(),
       formIntro: els.formIntroInput.value.trim(),
-      targetSampleSize: Number(els.targetSampleSizeInput.value) || 14
+      targetSampleSize: Number(els.targetSampleSizeInput.value) || 14,
+      inviteEmailSubject: els.inviteEmailSubjectInput.value.trim(),
+      inviteEmailBody: els.inviteEmailBodyInput.value.trim(),
+      rewardEmailSubject: els.rewardEmailSubjectInput.value.trim(),
+      rewardEmailBody: els.rewardEmailBodyInput.value.trim()
     }, { merge: true });
     els.settingsMessage.textContent = "設定已儲存";
     els.settingsMessage.className = "text-sm text-green-600 mt-2";

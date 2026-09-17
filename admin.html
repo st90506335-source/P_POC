@@ -218,6 +218,27 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">預計核心測試樣本數</label>
             <input id="targetSampleSizeInput" type="number" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm">
           </div>
+
+          <hr class="border-gray-200">
+          <p class="text-sm font-semibold text-gray-700">通知信內容 <span class="font-normal text-gray-400">（支援 HTML 語法，例如 &lt;br&gt;、&lt;b&gt;；可用變數：{{userName}}、{{link}}；留空則使用預設內容）</span></p>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">邀請通知信．主旨</label>
+            <input id="inviteEmailSubjectInput" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm" placeholder="P_POC 開放式測試邀請通知">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">邀請通知信．內容</label>
+            <textarea id="inviteEmailBodyInput" rows="5" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm font-mono" placeholder="{{userName}} 您好，&#10;&#10;恭喜您獲選為本次開放式測試核心受測名單，請點選以下連結登入完成受測流程：&#10;{{link}}&#10;&#10;P_POC 團隊"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">發券通知信．主旨</label>
+            <input id="rewardEmailSubjectInput" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm" placeholder="P_POC 測試獎勵發放通知">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">發券通知信．內容</label>
+            <textarea id="rewardEmailBodyInput" rows="5" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm font-mono" placeholder="{{userName}} 您好，&#10;&#10;感謝您完成本次測試回饋，審核已通過！請點選以下連結登入領取您的超商禮券：&#10;{{link}}&#10;&#10;P_POC 團隊"></textarea>
+          </div>
+
           <button type="submit" class="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm hover:bg-indigo-700">儲存設定</button>
           <p id="settingsMessage" class="text-sm mt-2"></p>
         </form>
@@ -227,6 +248,6 @@
 
   </main>
 
-  <script type="module" src="./assets/js/admin.js?v=20260915a"></script>
+  <script type="module" src="./assets/js/admin.js?v=20260917a"></script>
 </body>
 </html>

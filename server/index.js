@@ -23,6 +23,35 @@ app.use(express.json());
 app.get("/health", (req, res) => res.json({ ok: true }));
 
 // ---------------------------------------------------------------------------
+// 通知信範本：內容可在後台「系統設定」編輯，未設定時使用以下預設值
+// 範本支援 {{userName}} / {{link}} 兩個變數
+// ---------------------------------------------------------------------------
+const DEFAULT_EMAIL_TEMPLATES = {
+  invite: {
+    subject: "P_POC 開放式測試邀請通知",
+    body: "{{userName}} 您好，<br><br>恭喜您獲選為本次開放式測試核心受測名單，請點選以下連結登入完成受測流程：<br>{{link}}<br><br>P_POC 團隊"
+  },
+  reward: {
+    subject: "P_POC 測試獎勵發放通知",
+    body: "{{userName}} 您好，<br><br>感謝您完成本次測試回饋，審核已通過！請點選以下連結登入領取您的超商禮券：<br>{{link}}<br><br>P_POC 團隊"
+  }
+};
+
+function renderTemplate(template, vars) {
+  return template.replace(/\{\{(\w+)\}\}/g, (match, key) => (key in vars ? vars[key] : match));
+}
+
+async function getEmailTemplate(kind) {
+  const defaults = DEFAULT_EMAIL_TEMPLATES[kind];
+  const snap = await db.collection("settings").doc("config").get();
+  const data = snap.exists ? snap.data() : {};
+  return {
+    subject: data[`${kind}EmailSubject`] || defaults.subject,
+    body: data[`${kind}EmailBody`] || defaults.body
+  };
+}
+
+// ---------------------------------------------------------------------------
 // 庫存防護與邀請發送
 // ---------------------------------------------------------------------------
 app.post("/api/sendInvites", requireAuth, requireAdmin, async (req, res) => {
@@ -48,14 +77,16 @@ app.post("/api/sendInvites", requireAuth, requireAdmin, async (req, res) => {
   });
   await batch.commit();
 
+  const template = await getEmailTemplate("invite");
   const snaps = await Promise.all(applicantRefs.map((ref) => ref.get()));
   await Promise.all(snaps.map((snap) => {
     const data = snap.data();
     if (!data?.email) return Promise.resolve();
+    const vars = { userName: data.userName || "", link: `${FRONTEND_URL}/test.html` };
     return sendMail({
       to: data.email,
-      subject: "P_POC 開放式測試邀請通知",
-      text: `${data.userName || ""} 您好，\n\n恭喜您獲選為本次開放式測試核心受測名單，請點選以下連結登入完成受測流程：\n${FRONTEND_URL}/test.html\n\nP_POC 團隊`
+      subject: renderTemplate(template.subject, vars),
+      html: renderTemplate(template.body, vars)
     });
   }));
 
@@ -101,10 +132,12 @@ app.post("/api/approveAndAssignReward", requireAuth, requireAdmin, async (req, r
     });
 
     if (result.email) {
+      const template = await getEmailTemplate("reward");
+      const vars = { userName: result.userName || "", link: `${FRONTEND_URL}/redeem.html` };
       await sendMail({
         to: result.email,
-        subject: "P_POC 測試獎勵發放通知",
-        text: `${result.userName || ""} 您好，\n\n感謝您完成本次測試回饋，審核已通過！請點選以下連結登入領取您的超商禮券：\n${FRONTEND_URL}/redeem.html\n\nP_POC 團隊`
+        subject: renderTemplate(template.subject, vars),
+        html: renderTemplate(template.body, vars)
       });
     }
 
