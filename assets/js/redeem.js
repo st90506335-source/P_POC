@@ -2,7 +2,7 @@
 // 對應規格書 3.2 節：向後端安全呼叫請求序號（rewards 集合前端全閉鎖，僅能透過後端 API 取得）
 
 import { db } from "./firebase-config.js";
-import { API_BASE_URL } from "./api-config.js";
+import { API_BASE_URL } from "./api-config.js?v=20261005a";
 import { onAuthReady, signIn } from "./auth-guard.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 

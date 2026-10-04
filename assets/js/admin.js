@@ -2,7 +2,7 @@
 // 對應規格書 3.2 / 5 節：審核介面、題庫 CRUD、庫存管理、批次邀請、核准發券
 
 import { db, auth } from "./firebase-config.js";
-import { API_BASE_URL } from "./api-config.js";
+import { API_BASE_URL } from "./api-config.js?v=20261005a";
 import { onAuthReady, isAdmin, signIn, signOutUser } from "./auth-guard.js";
 import {
   doc,
