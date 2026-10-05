@@ -986,6 +986,51 @@ els.settingsForm?.addEventListener("submit", async (e) => {
   }
 });
 
+// 通知信預覽：預設內容需與 server/index.js 的 DEFAULT_EMAIL_TEMPLATES 保持一致
+const EMAIL_PREVIEW = {
+  invite: {
+    subjectInput: els.inviteEmailSubjectInput,
+    bodyInput: els.inviteEmailBodyInput,
+    defaultSubject: "P_POC 開放式測試邀請通知",
+    defaultBody: "{{userName}} 您好，<br><br>恭喜您獲選為本次開放式測試核心受測名單，請點選以下連結登入完成受測流程：<br>{{link}}<br><br>P_POC 團隊",
+    page: "test.html"
+  },
+  reward: {
+    subjectInput: els.rewardEmailSubjectInput,
+    bodyInput: els.rewardEmailBodyInput,
+    defaultSubject: "P_POC 測試獎勵發放通知",
+    defaultBody: "{{userName}} 您好，<br><br>感謝您完成本次測試回饋，審核已通過！請點選以下連結登入領取您的超商禮券：<br>{{link}}<br><br>P_POC 團隊",
+    page: "redeem.html"
+  }
+};
+let activeEmailPreview = null;
+
+function renderEmailPreview() {
+  const cfg = EMAIL_PREVIEW[activeEmailPreview];
+  if (!cfg) return;
+  const vars = { userName: "王小明", link: new URL(cfg.page, location.href).href.split("?")[0] };
+  const fill = (tpl) => tpl.replace(/\{\{(\w+)\}\}/g, (m, k) => (k in vars ? vars[k] : m));
+  const subject = cfg.subjectInput.value.trim() || cfg.defaultSubject;
+  const body = cfg.bodyInput.value.trim() || cfg.defaultBody;
+  document.getElementById("emailPreviewSubject").textContent = fill(subject);
+  document.getElementById("emailPreviewFrame").srcdoc =
+    `<body style="margin:16px;font:14px/1.6 -apple-system,'Segoe UI','Noto Sans TC',sans-serif;color:#222">${fill(body)}</body>`;
+  document.getElementById("emailPreviewPanel").classList.remove("hidden");
+}
+
+function showEmailPreview(kind) {
+  activeEmailPreview = kind;
+  renderEmailPreview();
+}
+
+document.getElementById("previewInviteEmailBtn")?.addEventListener("click", () => showEmailPreview("invite"));
+document.getElementById("previewRewardEmailBtn")?.addEventListener("click", () => showEmailPreview("reward"));
+Object.entries(EMAIL_PREVIEW).forEach(([kind, cfg]) => {
+  [cfg.subjectInput, cfg.bodyInput].forEach((input) =>
+    input?.addEventListener("input", () => { if (activeEmailPreview) showEmailPreview(kind); })
+  );
+});
+
 // ---------- Init ----------
 els.loginBtn?.addEventListener("click", () => signIn().catch((err) => console.error(err)));
 els.logoutBtn?.addEventListener("click", () => signOutUser());

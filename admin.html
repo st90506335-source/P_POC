@@ -228,7 +228,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">邀請通知信．內容</label>
-            <textarea id="inviteEmailBodyInput" rows="5" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm font-mono" placeholder="{{userName}} 您好，&#10;&#10;恭喜您獲選為本次開放式測試核心受測名單，請點選以下連結登入完成受測流程：&#10;{{link}}&#10;&#10;P_POC 團隊"></textarea>
+            <textarea id="inviteEmailBodyInput" rows="5" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm font-mono" placeholder="{{userName}} 您好，&lt;br&gt;&lt;br&gt;恭喜您獲選為本次開放式測試核心受測名單，請點選以下連結登入完成受測流程：&lt;br&gt;{{link}}&lt;br&gt;&lt;br&gt;P_POC 團隊"></textarea>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">發券通知信．主旨</label>
@@ -236,7 +236,21 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">發券通知信．內容</label>
-            <textarea id="rewardEmailBodyInput" rows="5" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm font-mono" placeholder="{{userName}} 您好，&#10;&#10;感謝您完成本次測試回饋，審核已通過！請點選以下連結登入領取您的超商禮券：&#10;{{link}}&#10;&#10;P_POC 團隊"></textarea>
+            <textarea id="rewardEmailBodyInput" rows="5" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm font-mono" placeholder="{{userName}} 您好，&lt;br&gt;&lt;br&gt;感謝您完成本次測試回饋，審核已通過！請點選以下連結登入領取您的超商禮券：&lt;br&gt;{{link}}&lt;br&gt;&lt;br&gt;P_POC 團隊"></textarea>
+          </div>
+
+          <div class="rounded-lg border border-gray-200 p-3 bg-gray-50">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-sm font-medium text-gray-700">預覽通知信</span>
+              <button type="button" id="previewInviteEmailBtn" class="px-3 py-1 rounded-lg border border-gray-300 bg-white text-sm hover:bg-gray-100">邀請信</button>
+              <button type="button" id="previewRewardEmailBtn" class="px-3 py-1 rounded-lg border border-gray-300 bg-white text-sm hover:bg-gray-100">發券信</button>
+              <span class="text-xs text-gray-400">使用目前欄位內容（不必先儲存），變數以範例資料代入</span>
+            </div>
+            <div id="emailPreviewPanel" class="hidden mt-3">
+              <p class="text-xs text-gray-500">主旨</p>
+              <p id="emailPreviewSubject" class="text-sm font-semibold text-gray-800 mb-2"></p>
+              <iframe id="emailPreviewFrame" sandbox="" class="w-full h-72 bg-white border border-gray-200 rounded-lg"></iframe>
+            </div>
           </div>
 
           <button type="submit" class="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm hover:bg-indigo-700">儲存設定</button>
@@ -248,6 +262,6 @@
 
   </main>
 
-  <script type="module" src="./assets/js/admin.js?v=20261005a"></script>
+  <script type="module" src="./assets/js/admin.js?v=20261005b"></script>
 </body>
 </html>
